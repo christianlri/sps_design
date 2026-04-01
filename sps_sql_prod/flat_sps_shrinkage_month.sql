@@ -24,7 +24,7 @@ tmp_sp_product AS (
    COALESCE(sp.level_two, '_unknown_') AS l2_master_category,
    COALESCE(sp.level_three, '_unknown_') AS l3_master_category,
   --  MAX(sp.updated_at) AS last_updated,
- FROM `dh-darkstores-live.cl_dmart.sps_product` AS sp
+ FROM `dh-darkstores-live.csm_automated_tables.sps_product` AS sp
  WHERE TRUE
   AND sp.global_entity_id = 'PY_PE'
  GROUP BY 1,2,3,4,5,6,7,8,9,10
