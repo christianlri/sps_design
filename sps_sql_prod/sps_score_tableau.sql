@@ -24,6 +24,8 @@ SELECT DISTINCT * FROM (
   SELECT global_entity_id, time_period, brand_sup, entity_key, division_type, supplier_level, time_granularity FROM `{{ params.project_id }}.{{ params.dataset.cl }}.sps_shrinkage`
   UNION ALL
   SELECT global_entity_id, time_period, brand_sup, entity_key, division_type, supplier_level, time_granularity FROM `{{ params.project_id }}.{{ params.dataset.cl }}.sps_delivery_costs`
+  UNION ALL
+  SELECT global_entity_id, time_period, brand_sup, entity_key, division_type, supplier_level, time_granularity FROM `{{ params.project_id }}.{{ params.dataset.cl }}.sps_purchase_order`
 ))
 SELECT o.*,
  p.median_price_index,
@@ -38,7 +40,15 @@ SELECT o.*,
  shrink.retail_revenue,
  shrink.spoilage_rate,
  deliv.delivery_cost_eur,
- deliv.delivery_cost_local
+ deliv.delivery_cost_local,
+ po.on_time_orders,
+ po.total_received_qty_per_po_order,
+ po.total_demanded_qty_per_po_order,
+ po.total_cancelled_po_orders,
+ po.total_non_cancelled__po_orders,
+ po.fill_rate,
+ po.otd,
+ po.supplier_non_fulfilled_order_qty
 FROM all_keys AS o
 LEFT JOIN `{{ params.project_id }}.{{ params.dataset.cl }}.sps_price_index` AS p
   ON o.global_entity_id = p.global_entity_id AND o.time_period = p.time_period AND o.time_granularity = p.time_granularity AND o.division_type = p.division_type AND o.supplier_level = p.supplier_level AND o.entity_key = p.entity_key AND o.brand_sup = p.brand_sup
@@ -56,3 +66,5 @@ LEFT JOIN `{{ params.project_id }}.{{ params.dataset.cl }}.sps_shrinkage` AS shr
   ON o.global_entity_id = shrink.global_entity_id AND o.time_period = shrink.time_period AND o.time_granularity = shrink.time_granularity AND o.division_type = shrink.division_type AND o.supplier_level = shrink.supplier_level AND o.entity_key = shrink.entity_key AND o.brand_sup = shrink.brand_sup
 LEFT JOIN `{{ params.project_id }}.{{ params.dataset.cl }}.sps_delivery_costs` AS deliv
   ON o.global_entity_id = deliv.global_entity_id AND o.time_period = deliv.time_period AND o.time_granularity = deliv.time_granularity AND o.division_type = deliv.division_type AND o.supplier_level = deliv.supplier_level AND o.entity_key = deliv.entity_key AND o.brand_sup = deliv.brand_sup
+LEFT JOIN `{{ params.project_id }}.{{ params.dataset.cl }}.sps_purchase_order` AS po
+  ON o.global_entity_id = po.global_entity_id AND o.time_period = po.time_period AND o.time_granularity = po.time_granularity AND o.division_type = po.division_type AND o.supplier_level = po.supplier_level AND o.entity_key = po.entity_key AND o.brand_sup = po.brand_sup
