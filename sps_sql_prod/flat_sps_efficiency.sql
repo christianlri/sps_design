@@ -49,7 +49,7 @@ WITH date_config AS (
         WHEN GROUPING(month) = 0 THEN CAST(DATE_SUB(DATE(month), INTERVAL 1 YEAR) AS STRING)
         ELSE CONCAT(SUBSTR(quarter_year, 1, 2), '-', CAST(CAST(SUBSTR(quarter_year, 4) AS INT64) - 1 AS STRING))
     END AS last_year_time_period,
-    COUNT(DISTINCT sku_id) sku_listed,
+    COUNT(DISTINCT CASE WHEN is_listed = TRUE THEN sku_id END) AS sku_listed,
     COUNT(DISTINCT CASE WHEN updated_sku_age >= 90 THEN sku_id END) AS sku_mature,
     COUNT(DISTINCT CASE WHEN updated_sku_age < 90 AND updated_sku_age > 30 THEN sku_id END) AS sku_probation,
     COUNT(DISTINCT CASE WHEN updated_sku_age <= 30 THEN sku_id END) AS sku_new,
