@@ -54,39 +54,47 @@ WITH date_config AS (
     COUNT(DISTINCT CASE WHEN is_listed = TRUE AND updated_sku_age < 90 AND updated_sku_age > 30 THEN sku_id END) AS sku_probation,
     COUNT(DISTINCT CASE WHEN is_listed = TRUE AND updated_sku_age <= 30 THEN sku_id END) AS sku_new,
     COUNT(DISTINCT CASE
-      WHEN updated_sku_age >= 90
+      WHEN is_listed = TRUE
+      AND updated_sku_age >= 90
       AND sku_efficiency = 'zero_mover'
       AND ROUND(new_availability, 3) = 1
       THEN sku_id END) zero_movers,
     COUNT(DISTINCT CASE
-      WHEN updated_sku_age >= 90
+      WHEN is_listed = TRUE
+      AND updated_sku_age >= 90
       AND sku_efficiency = 'zero_mover'
       AND (ROUND(new_availability, 3) < 1 OR new_availability IS NULL)
       THEN sku_id END) la_zero_movers,
     COUNT(DISTINCT CASE
-      WHEN updated_sku_age >= 90
+      WHEN is_listed = TRUE
+      AND updated_sku_age >= 90
       AND sku_efficiency = 'slow_mover'
       AND ROUND(new_availability, 3) >= 0.8
       THEN sku_id END) slow_movers,
     COUNT(DISTINCT CASE
-      WHEN updated_sku_age >= 90
+      WHEN is_listed = TRUE
+      AND updated_sku_age >= 90
       AND sku_efficiency = 'slow_mover'
       AND (ROUND(new_availability, 3) < 0.8 OR new_availability IS NULL)
       THEN sku_id END) la_slow_movers,
     COUNT(DISTINCT CASE
-      WHEN updated_sku_age >= 90
+      WHEN is_listed = TRUE
+      AND updated_sku_age >= 90
       AND sku_efficiency = 'efficient_sku'
       THEN sku_id END) efficient_movers,
     COUNT(DISTINCT CASE
-      WHEN updated_sku_age < 30
+      WHEN is_listed = TRUE
+      AND updated_sku_age < 30
       AND sku_efficiency = 'zero_mover'
       THEN sku_id END) new_zero_movers,
     COUNT(DISTINCT CASE
-      WHEN updated_sku_age < 30
+      WHEN is_listed = TRUE
+      AND updated_sku_age < 30
       AND sku_efficiency = 'slow_mover'
       THEN sku_id END) new_slow_movers,
     COUNT(DISTINCT CASE
-      WHEN updated_sku_age < 90
+      WHEN is_listed = TRUE
+      AND updated_sku_age < 90
       AND sku_efficiency = 'efficient_sku'
       THEN sku_id END) new_efficient_movers,
     ROUND(SUM(sold_items),1) AS sold_items,
