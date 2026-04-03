@@ -11,8 +11,10 @@ WITH date_config AS (
   SELECT
      DATE_SUB(DATE_TRUNC(CURRENT_DATE(), QUARTER), INTERVAL 4 QUARTER) AS lookback_limit
 ),
--- CTE 1: calcula efficiency por (supplier, warehouse, mes)
--- sin categorías — una fila por warehouse
+-- CTE: calcula efficiency por (supplier, warehouse, categoría)
+-- perc_efficiency se calcula sobre el warehouse completo (window)
+-- gpv_eur es el GPV de esa categoría en ese warehouse
+-- SUM(weight per categoría) = weight del warehouse → suma exacta
 efficiency_by_warehouse AS (
   SELECT
     global_entity_id,
@@ -22,20 +24,65 @@ efficiency_by_warehouse AS (
     principal_supplier_id,
     brand_name,
     brand_owner_name,
+    l1_master_category,
+    l2_master_category,
+    l3_master_category,
     warehouse_id,
+
+    COUNT(DISTINCT CASE WHEN is_listed = TRUE
+      THEN sku_id END) AS sku_listed,
+    COUNT(DISTINCT CASE WHEN is_listed = TRUE
+      AND updated_sku_age >= 90 THEN sku_id END) AS sku_mature,
+    COUNT(DISTINCT CASE WHEN is_listed = TRUE
+      AND updated_sku_age < 90 AND updated_sku_age > 30
+      THEN sku_id END) AS sku_probation,
+    COUNT(DISTINCT CASE WHEN is_listed = TRUE
+      AND updated_sku_age <= 30 THEN sku_id END) AS sku_new,
+    COUNT(DISTINCT CASE WHEN is_listed = TRUE
+      AND updated_sku_age >= 90
+      AND sku_efficiency = 'efficient_sku'
+      THEN sku_id END) AS efficient_movers,
+    COUNT(DISTINCT CASE WHEN is_listed = TRUE
+      AND updated_sku_age < 30
+      AND sku_efficiency = 'zero_mover'
+      THEN sku_id END) AS new_zero_movers,
+    COUNT(DISTINCT CASE WHEN is_listed = TRUE
+      AND updated_sku_age < 30
+      AND sku_efficiency = 'slow_mover'
+      THEN sku_id END) AS new_slow_movers,
+    COUNT(DISTINCT CASE WHEN is_listed = TRUE
+      AND updated_sku_age < 90
+      AND sku_efficiency = 'efficient_sku'
+      THEN sku_id END) AS new_efficient_movers,
+
+    SUM(numerator_new_avail) AS numerator_new_avail,
+    SUM(denom_new_avail) AS denom_new_avail,
+    ROUND(SUM(sold_items), 1) AS sold_items,
+
     SUM(gpv_eur) AS gpv_eur,
+
     ROUND(
       SAFE_DIVIDE(
-        COUNT(DISTINCT CASE WHEN is_listed = TRUE AND updated_sku_age >= 90
-          AND sku_efficiency = 'efficient_sku' THEN sku_id END),
-        NULLIF(COUNT(DISTINCT CASE WHEN is_listed = TRUE AND updated_sku_age >= 90
+        SUM(COUNT(DISTINCT CASE WHEN is_listed = TRUE
+          AND updated_sku_age >= 90
+          AND sku_efficiency = 'efficient_sku'
+          THEN sku_id END))
+          OVER (PARTITION BY global_entity_id, month,
+                supplier_id, warehouse_id),
+        NULLIF(SUM(COUNT(DISTINCT CASE WHEN is_listed = TRUE
+          AND updated_sku_age >= 90
           AND (
             (sku_efficiency = 'efficient_sku')
-            OR (sku_efficiency = 'slow_mover' AND ROUND(new_availability,3) >= 0.8)
-            OR (sku_efficiency = 'zero_mover' AND ROUND(new_availability,3) = 1)
-          ) THEN sku_id END), 0)
+            OR (sku_efficiency = 'slow_mover'
+                AND ROUND(new_availability,3) >= 0.8)
+            OR (sku_efficiency = 'zero_mover'
+                AND ROUND(new_availability,3) = 1)
+          ) THEN sku_id END))
+          OVER (PARTITION BY global_entity_id, month,
+                supplier_id, warehouse_id), 0)
       ) * SUM(gpv_eur)
     , 4) AS weight_efficiency
+
   FROM `dh-darkstores-live.csm_automated_tables.sps_efficiency_month`
   WHERE CAST(month AS DATE) >= (SELECT lookback_limit FROM date_config)
   GROUP BY
@@ -46,82 +93,10 @@ efficiency_by_warehouse AS (
     principal_supplier_id,
     brand_name,
     brand_owner_name,
+    l1_master_category,
+    l2_master_category,
+    l3_master_category,
     warehouse_id
-),
--- CTE 2: distribuye weight_efficiency a nivel categoría
--- proporcional al GPV de cada categoría en ese warehouse
-efficiency_by_category AS (
-  SELECT
-    em.global_entity_id,
-    em.month,
-    em.quarter_year,
-    em.supplier_id,
-    em.principal_supplier_id,
-    em.brand_name,
-    em.brand_owner_name,
-    em.l1_master_category,
-    em.l2_master_category,
-    em.l3_master_category,
-    -- conteos de SKUs por categoría (igual que antes)
-    COUNT(DISTINCT CASE WHEN em.is_listed = TRUE
-      THEN em.sku_id END) AS sku_listed,
-    COUNT(DISTINCT CASE WHEN em.is_listed = TRUE
-      AND em.updated_sku_age >= 90 THEN em.sku_id END) AS sku_mature,
-    COUNT(DISTINCT CASE WHEN em.is_listed = TRUE
-      AND em.updated_sku_age < 90 AND em.updated_sku_age > 30
-      THEN em.sku_id END) AS sku_probation,
-    COUNT(DISTINCT CASE WHEN em.is_listed = TRUE
-      AND em.updated_sku_age <= 30 THEN em.sku_id END) AS sku_new,
-    COUNT(DISTINCT CASE WHEN em.is_listed = TRUE
-      AND em.updated_sku_age >= 90
-      AND em.sku_efficiency = 'efficient_sku'
-      THEN em.sku_id END) AS efficient_movers,
-    COUNT(DISTINCT CASE WHEN em.is_listed = TRUE
-      AND em.updated_sku_age < 30
-      AND em.sku_efficiency = 'zero_mover'
-      THEN em.sku_id END) AS new_zero_movers,
-    COUNT(DISTINCT CASE WHEN em.is_listed = TRUE
-      AND em.updated_sku_age < 30
-      AND em.sku_efficiency = 'slow_mover'
-      THEN em.sku_id END) AS new_slow_movers,
-    COUNT(DISTINCT CASE WHEN em.is_listed = TRUE
-      AND em.updated_sku_age < 90
-      AND em.sku_efficiency = 'efficient_sku'
-      THEN em.sku_id END) AS new_efficient_movers,
-    SUM(em.numerator_new_avail) AS numerator_new_avail,
-    SUM(em.denom_new_avail) AS denom_new_avail,
-    ROUND(SUM(em.sold_items), 1) AS sold_items,
-    -- GPV de esta categoría en este warehouse
-    SUM(em.gpv_eur) AS gpv_eur,
-    -- weight_efficiency distribuido proporcionalmente al GPV de la categoría
-    -- Si la categoría tiene X% del GPV del warehouse,
-    -- le corresponde X% del weight_efficiency del warehouse
-    ROUND(
-      wh.weight_efficiency
-      * SAFE_DIVIDE(SUM(em.gpv_eur), wh.gpv_eur)
-    , 4) AS weight_efficiency
-  FROM `dh-darkstores-live.csm_automated_tables.sps_efficiency_month` em
-  LEFT JOIN efficiency_by_warehouse wh
-    ON  em.global_entity_id   = wh.global_entity_id
-    AND em.month              = wh.month
-    AND em.supplier_id        = wh.supplier_id
-    AND em.warehouse_id       = wh.warehouse_id
-    AND em.brand_name         = wh.brand_name
-    AND em.brand_owner_name   = wh.brand_owner_name
-  WHERE CAST(em.month AS DATE) >= (SELECT lookback_limit FROM date_config)
-  GROUP BY
-    em.global_entity_id,
-    em.month,
-    em.quarter_year,
-    em.supplier_id,
-    em.principal_supplier_id,
-    em.brand_name,
-    em.brand_owner_name,
-    em.l1_master_category,
-    em.l2_master_category,
-    em.l3_master_category,
-    wh.weight_efficiency,
-    wh.gpv_eur
 )
  SELECT
     global_entity_id,
@@ -174,7 +149,7 @@ efficiency_by_category AS (
     SUM(numerator_new_avail) AS numerator_new_avail,
     SUM(denom_new_avail) AS denom_new_avail,
     SUM(weight_efficiency) AS weight_efficiency
-   FROM efficiency_by_category
+   FROM efficiency_by_warehouse
 GROUP BY GROUPING SETS (
     -- ==========================================================
     -- MONTHLY BREAKDOWNS (month)
