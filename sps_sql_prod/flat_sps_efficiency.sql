@@ -61,13 +61,15 @@ efficiency_by_warehouse AS (
     -- weight_efficiency = perc_efficiency * gpv del supplier en este warehouse
     -- perc_efficiency = efficient / (efficient + slow + zero) por warehouse
     -- Metodología AQS v7: assortment_quality_scorecard_v7.sql
-    SAFE_DIVIDE(
-      COUNT(DISTINCT CASE WHEN is_listed = TRUE AND updated_sku_age >= 90
-        AND sku_efficiency = 'efficient_sku' THEN sku_id END),
-      NULLIF(COUNT(DISTINCT CASE WHEN is_listed = TRUE AND updated_sku_age >= 90
-        AND sku_efficiency IN ('efficient_sku','slow_mover','zero_mover')
-        THEN sku_id END), 0)
-    ) * SUM(gpv_eur) AS weight_efficiency
+    ROUND(
+      SAFE_DIVIDE(
+        COUNT(DISTINCT CASE WHEN is_listed = TRUE AND updated_sku_age >= 90
+          AND sku_efficiency = 'efficient_sku' THEN sku_id END),
+        NULLIF(COUNT(DISTINCT CASE WHEN is_listed = TRUE AND updated_sku_age >= 90
+          AND sku_efficiency IN ('efficient_sku','slow_mover','zero_mover')
+          THEN sku_id END), 0)
+      ) * SUM(gpv_eur)
+    , 4) AS weight_efficiency
   FROM `dh-darkstores-live.csm_automated_tables.sps_efficiency_month`
   WHERE CAST(month AS DATE) >= (SELECT lookback_limit FROM date_config)
   GROUP BY 1,2,3,4,5,6,7,8,9,10,11
@@ -114,10 +116,6 @@ efficiency_by_warehouse AS (
     SUM(sku_mature) AS sku_mature,
     SUM(sku_probation) AS sku_probation,
     SUM(sku_new) AS sku_new,
-    SUM(zero_movers) AS zero_movers,
-    SUM(la_zero_movers) AS la_zero_movers,
-    SUM(slow_movers) AS slow_movers,
-    SUM(la_slow_movers) AS la_slow_movers,
     SUM(efficient_movers) AS efficient_movers,
     SUM(new_zero_movers) AS new_zero_movers,
     SUM(new_slow_movers) AS new_slow_movers,

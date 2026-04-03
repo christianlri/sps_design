@@ -12,7 +12,10 @@
 --   total_received_qty_ALL, total_demanded_qty_ALL
 --   (+ on_time_orders, fill_rate, otd, supplier_non_fulfilled_order_qty)
 -- Ingredientes desde sps_efficiency:
---   zero_movers, slow_movers, efficient_movers, sku_listed (como listed_skus_efficiency)
+--   weight_efficiency: GPV-weighted efficiency numerator (AQS v7 methodology)
+--   gpv_eur: GPV denominator for weighted efficiency
+--   Tableau formula: SUM(weight_efficiency) / SUM(gpv_eur) = efficiency %
+--   efficient_movers, sku_listed (como listed_skus_efficiency)
 
 CREATE OR REPLACE TABLE `dh-darkstores-live.csm_automated_tables.sps_score_tableau`
 CLUSTER BY
@@ -60,8 +63,6 @@ SELECT o.*,
  se.sku_probation,    -- Listed SKUs with updated_sku_age between 31-89 days. Used as part of efficient_listings denominator = (sku_new + sku_probation). Aligns with assortment_quality_scorecard_v7.
 
  -- Numerators (mature SKUs only)
- se.zero_movers,      -- Mature SKUs with no sales AND availability = 1 (stock present). Pure demand problem. Numerator for: % zero movers and efficiency = 1 - (zero + slow) / mature. Aligns with AQS v7.
- se.slow_movers,      -- Mature SKUs selling below category threshold AND availability >= 0.8. Threshold varies by category_l0 (not fixed at 1). Numerator for: % slow movers and efficiency formula. Aligns with AQS v7.
  se.efficient_movers, -- Mature SKUs selling at or above category threshold. Retained for reference — AQS v7 calculates efficiency as 1-(zero+slow)/mature, not efficient/mature directly.
 
  -- Availability ingredients (never use new_availability directly in Tableau)
