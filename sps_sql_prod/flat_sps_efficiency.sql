@@ -23,6 +23,7 @@ efficiency_by_warehouse AS (
     l1_master_category,
     l2_master_category,
     l3_master_category,
+    warehouse_id,
     -- Conteos de SKUs (igual que antes)
     COUNT(DISTINCT CASE WHEN is_listed = TRUE THEN sku_id END)
       AS sku_listed,
@@ -87,7 +88,8 @@ efficiency_by_warehouse AS (
   brand_owner_name,
   l1_master_category,
   l2_master_category,
-  l3_master_category
+  l3_master_category,
+  warehouse_id
 
 )
  SELECT
