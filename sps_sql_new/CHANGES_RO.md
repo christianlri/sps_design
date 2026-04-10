@@ -56,7 +56,6 @@ Următoarele fișiere sunt copii directe fără modificări:
 - sps_delivery_costs.sql
 - sps_days_payable_month.sql (doar modificări de hardcoding)
 - sps_delivery_costs_month.sql (doar modificări de hardcoding)
-- sps_efficiency_simple.sql
 - sps_financial_metrics.sql
 - sps_financial_metrics_month.sql
 - sps_financial_metrics_prev_year.sql
