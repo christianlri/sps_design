@@ -67,7 +67,7 @@ tmp_efficiency AS (
    e.gpv_eur,
    STRING(e.month) AS month,
    CAST(CONCAT('Q', EXTRACT(QUARTER FROM e.month), '-', EXTRACT(YEAR FROM e.month)) AS STRING) AS quarter_year,
- FROM `{{ params.project_id }}.{{ params.dataset.rl }}.sku_efficiency_detail_v2` AS e
+ FROM `{{ params.project_id }}.{{ params.dataset.cl }}.sku_efficiency_detail_v2` AS e
  WHERE TRUE
     AND (DATE_TRUNC(e.partition_month, MONTH) BETWEEN (SELECT date_in FROM date_in).date_in AND (SELECT date_fin FROM date_fin).date_fin)
     AND REGEXP_CONTAINS(e.global_entity_id, {{ params.param_global_entity_id }})
