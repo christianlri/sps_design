@@ -56,7 +56,6 @@ The following files are direct copies without modifications:
 - sps_delivery_costs.sql
 - sps_days_payable_month.sql (hardcoding changes only)
 - sps_delivery_costs_month.sql (hardcoding changes only)
-- sps_efficiency_simple.sql
 - sps_financial_metrics.sql
 - sps_financial_metrics_month.sql
 - sps_financial_metrics_prev_year.sql
