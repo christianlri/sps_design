@@ -38,8 +38,8 @@ Acest folder conține fișierele originale (sps_originals) cu modificările crit
 - **Schimbări:** Redenumire câmpuri (spoilage_value → spoilage_value_eur, retail_revenue → retail_revenue_eur)
 - **Nou:** spoilage_value_lc, retail_revenue_lc (suport multi-valută)
 
-#### 7. **sps_line_rebate_metrics.sql**
-- **Ingrediente noi:** calc_net_delivered, calc_net_return
+#### 7. **sps_line_rebate_metrics.sql** 
+- **Ingrediente noi:** calc_net_delivered, calc_net_return and calc_gross two fields (2)
 - **Bază pentru:** Calcule de rabat în Tableau (net_purchase = SUM(calc_net_delivered) - SUM(calc_net_return))
 
 ### Nivel 3: Debug (Revizuiți pentru validare)
