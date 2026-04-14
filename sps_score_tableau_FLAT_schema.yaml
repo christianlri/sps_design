@@ -1,0 +1,200 @@
+name: sps_score_tableau
+
+related_reports_name:
+  - Supplier Scorecard
+
+related_reports_link:
+  - https://tableau.deliveryhero.net/#/site/GlobalStandardReporting/workbooks/40837/views
+
+cluster_fields:
+  - global_entity_id
+
+table_description: |
+  This is the final output table for the Supplier Scorecard (SPS) project, specifically designed for Tableau consumption. It consolidates all KPIs and metrics into a unified grain, joining financial data, efficiency metrics, rebate information, price indices, and payment terms.
+  The primary driver for this table is now Purchase Order (PO) data.
+  ### Key
+  PK: `global_entity_id` + `time_period` + `brand_sup` + `entity_key`
+
+  ### Clustering
+  `global_entity_id`
+
+  ### Sources
+  - `{{ params.project_id }}.{{ params.dataset.cl }}.sps_purchase_order`: Primary anchor; Purchase order metrics.
+  - `{{ params.project_id }}.{{ params.dataset.cl }}.sps_financial_metrics`: Sales, COGS, and Margin metrics.
+  - `{{ params.project_id }}.{{ params.dataset.cl }}.sps_line_rebate_metrics`: Rebate and back-margin details.
+  - `{{ params.project_id }}.{{ params.dataset.cl }}.sps_price_index`: Pricing benchmark metrics.
+  - `{{ params.project_id }}.{{ params.dataset.cl }}.sps_days_payable`: Payment terms and DPO metrics.
+  - `{{ params.project_id }}.{{ params.dataset.cl }}.sps_efficiency`: Assortment health and SKU velocity metrics.
+  - `{{ params.project_id }}.{{ params.dataset.cl }}.sps_listed_sku`: Listed SKU metrics.
+  - `{{ params.project_id }}.{{ params.dataset.cl }}.sps_shrinkage`: Shrinkage and spoilage metrics.
+
+  ### Data freshness
+  SPS Execution Position No. 10. Final step in the scorecard pipeline.
+
+  ### Owner
+  - Team: QCommerce Data Analytics - Commercial team
+  - Email: qc_analytics@deliveryhero.com
+
+columns_description:
+  - global_entity_id: |
+      Identifier for the global entity (e.g., 'TB_KW' for Talabat Kuwait).
+  - time_period: |
+      The reporting period (YYYY-MM-DD) for detail rows or Quarter-Year (Qx-YYYY) for roll-up rows.
+  - brand_sup: |
+      Unique identifier for the supplier entity, prioritized by Principal ID, then Division ID, then Brand Owner.
+  - entity_key: |
+      The specific aggregation key (Category L1/L2/L3 or Supplier ID).
+  - division_type: |
+      Classification of the record: 'principal', 'division', or 'brand_owner'.
+  - supplier_level: |
+      The hierarchy level of the aggregation: 'level_three', 'level_two', 'level_one', or 'supplier'.
+  - time_granularity: |
+      Label indicating if the record is 'Monthly' or 'Quarterly'.
+  - on_time_orders: |
+      Count of purchase orders delivered within the requested time window.
+  - total_cancelled_po_orders: |
+      Total number of purchase orders that were cancelled.
+  - total_non_cancelled__po_orders: |
+      Total number of purchase orders currently active or completed.
+  - total_received_qty_per_po_order: |
+      Total quantity of items physically received across all POs.
+  - total_demanded_qty_per_po_order: |
+      Total quantity of items originally requested/ordered from the supplier.
+  - fill_rate: |
+      Supplier fulfillment performance (Received Qty / Demanded Qty).
+  - otd: |
+      On-Time Delivery percentage.
+  - supplier_non_fulfilled_order_qty: |
+      The quantity of items that were ordered but never received (Shortfall).
+  - total_customers: |
+      Count of unique analytical customers for the entity/period.
+  - total_skus_sold: |
+      Count of unique SKUs with recorded sales.
+  - total_orders: |
+      Total volume of unique customer orders.
+  - total_warehouses_sold: |
+      Count of warehouses that generated sales in this bucket.
+  - Total_Net_Sales_eur_order: |
+      Sum of order-level net sales in Euros.
+  - Net_Sales_eur: |
+      Sum of item-level net sales in Euros.
+  - COGS_eur: |
+      Cost of Goods Sold in Euros.
+  - Net_Sales_from_promo_eur: |
+      Sales generated from promotional items in Euros.
+  - total_supplier_funding_eur: |
+      Total supplier funding contributions in Euros.
+  - front_margin_amt_eur: |
+      Gross profit amount in Euros (Net Sales - COGS).
+  - total_discount_eur: |
+      Total customer discounts applied in Euros.
+  - Promo_GPV_contribution_eur: |
+      Percentage of total sales coming from promotions.
+  - Total_Net_Sales_lc_order: |
+      Sum of order-level net sales in local currency.
+  - Net_Sales_lc: |
+      Sum of item-level net sales in local currency.
+  - COGS_lc: |
+      Cost of Goods Sold in local currency.
+  - Net_Sales_from_promo_lc: |
+      Sales generated from promotional items in local currency.
+  - total_supplier_funding_lc: |
+      Total supplier funding contributions in local currency.
+  - front_margin_amt_lc: |
+      Gross profit amount in local currency (Net Sales - COGS).
+  - total_discount_lc: |
+      Total customer discounts applied in local currency.
+  - Promo_GPV_contribution_lc: |
+      Percentage of total sales coming from promotions in local currency.
+  - total_GBV: |
+      Total Gross Basket Value in Euros.
+  - fulfilled_quantity: |
+      Total number of units sold.
+  - Net_Sales_eur_Last_Year: |
+      Net Sales from the equivalent period in the previous year (YoY Comparison).
+  - Net_Sales_lc_Last_Year: |
+      Net Sales from the equivalent period in the previous year in local currency.
+  - YoY_GPV_Growth_eur: |
+      Growth percentage of sales in EUR compared to the previous year.
+  - YoY_GPV_Growth_lc: |
+      Growth percentage of sales in LC compared to the previous year.
+  - back_margin_amt_lc: |
+      Total rebate/back-margin amount in local currency.
+  - back_margin_wo_dist_allowance_amt_lc: |
+      Back-margin excluding distribution allowances in local currency.
+  - Total_Margin_LC: |
+      Combined margin percentage (Front + Back) in local currency.
+  - Front_Margin_eur: |
+      Front margin percentage in Euros.
+  - Front_Margin_lc: |
+      Front margin percentage in local currency.
+  - total_rebate: |
+      Total accumulated rebate value.
+  - total_rebate_wo_dist_allowance_lc: |
+      Total accumulated rebate excluding distribution allowances in local currency.
+  - median_price_index: |
+      Weighted median price index benchmarked against competitors.
+  - payment_days: |
+      Maximum payment terms allowed for the supplier in days.
+  - doh: |
+      Days on Hand; calculated as stock value relative to COGS.
+  - dpo: |
+      Days Payable Outstanding; calculated as the gap between payment terms and inventory age.
+  - last_year_time_period: |
+      Reference string for the same period in the previous year.
+  - sku_listed: |
+      Number of distinct SKUs available in the catalog for this period.
+  - sku_mature: |
+      Count of SKUs active for >= 90 days.
+  - sku_probation: |
+      Count of SKUs active for 31-89 days.
+  - sku_new: |
+      Count of SKUs active for <= 30 days.
+  - zero_movers: |
+      Count of mature SKUs with no sales despite availability.
+  - la_zero_movers: |
+      Count of mature SKUs with no sales and low availability.
+  - slow_movers: |
+      Count of mature SKUs with low sales velocity (avg_qty < 1).
+  - la_slow_movers: |
+      Count of mature SKUs with low sales velocity and poor availability.
+  - efficient_movers: |
+      Count of mature SKUs with high sales velocity (avg_qty >= 1).
+  - new_zero_movers: |
+      Count of new SKUs with zero sales.
+  - new_slow_movers: |
+      Count of new SKUs with slow sales velocity.
+  - new_efficient_movers: |
+      Count of new/probation SKUs with high sales velocity.
+  - sold_items: |
+      Total quantity of items sold.
+  - gpv_eur: |
+      Total Gross Product Value in Euros.
+  - listed_skus: |
+      Number of SKUs listed for the supplier.
+  - spoilage_value: |
+      Value of spoiled goods.
+  - retail_revenue: |
+      Total retail revenue.
+  - spoilage_rate: |
+      The rate of spoilage.
+  - delivery_cost_eur: |
+      Total delivery costs associated with the supplier's orders in Euros.
+  - delivery_cost_local: |
+      Total delivery costs associated with the supplier's orders in local currency.
+
+template_params:
+  param_country_code: '"eg|cl|sg|th|hu|es|jo|kw|ar|ae|qa|pe|tr|ua|it|om|bh|hk|ph|sa"'
+  param_global_entity_id: '"TB_EG|TB_CL|TB_SG|TB_TH|TB_HU|TB_ES|TB_JO|TB_KW|TB_AR|TB_AE|TB_QA|TB_PE|TB_TR|TB_UA|TB_IT|TB_OM|TB_BH|TB_HK|TB_PH|TB_SA"'
+
+dependencies:
+  - sps_price_index
+  - sps_days_payable
+  - sps_financial_metrics
+  - sps_line_rebate_metrics
+  - sps_efficiency
+  - sps_listed_sku
+  - sps_shrinkage
+  - sps_delivery_costs
+  - sps_purchase_order
+
