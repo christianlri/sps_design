@@ -169,13 +169,13 @@ columns_description:
   - sku_new: |
       Count of SKUs active for <= 30 days.
   - efficient_movers: |
-      Count of mature SKUs with high sales velocity (avg_qty >= 1).
+      Count of mature SKUs with high sales velocity (AQS v7)
   - new_zero_movers: |
-      Count of new SKUs with zero sales.
+      Count of SKUs with zero sales. (new methodology)
   - new_slow_movers: |
-      Count of new SKUs with slow sales velocity.
+      Count of SKUs with slow sales velocity. (new methodology)
   - new_efficient_movers: |
-      Count of new/probation SKUs with high sales velocity.
+      Count of SKUs with high sales velocity. (new methodology)
   - sold_items: |
       Total quantity of items sold.
   - gpv_eur: |
