@@ -1,0 +1,4 @@
+name: _srm_supplier_scorecard_brand_orders_rough
+owner: Durraiz Vazeer
+execution_timeout_minutes: 60
+table_description: This table contains the aggregate monthly and quarterly level data for orders.

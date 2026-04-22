@@ -1,0 +1,4 @@
+name: _srm_supplier_scorecard_operations_categories_l1_rough
+owner: Durraiz Vazeer
+table_description: This table creates monthly operations metrics (fill-rate and on-time deliveries) on
+  supplier level and l1 level.

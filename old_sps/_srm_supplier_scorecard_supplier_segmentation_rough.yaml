@@ -1,0 +1,9 @@
+name: _srm_supplier_scorecard_supplier_segmentation_rough
+owner: Durraiz Vazeer
+execution_timeout_minutes: 60
+table_description: This table contains the final level of data for the tableau report in
+  SPS for segmentation that aggregate on all levels (supplier, supplier l1, supplier l2 and supplier l3 levels.)
+dependencies:
+- _srm_supplier_scorecard_supplier_rough
+- _srm_supplier_scorecard_brand_orders_rough
+- _srm_supplier_availability_rough

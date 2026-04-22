@@ -1,0 +1,14 @@
+name: _srm_supplier_scorecard_supplier_score_overview_rough
+owner: Durraiz Vazeer
+execution_timeout_minutes: 60
+table_description: This table contains the final level of data for the tableau report
+  in SPS for overview that aggregate on all levels (supplier, supplier l1, supplier l2 and supplier l3 levels.)
+dependencies:
+- _srm_supplier_scorecard_supplier_segmentation_rough
+- _srm_supplier_score_overview_bo_categoriesl3
+- _srm_supplier_score_overview_bo_categoriesl2
+- _srm_supplier_scorecard_supplier_score_overview_bo_rough
+- _srm_supplier_score_overview_bo_categoriesl1
+template_params:
+  param_country_code: '"kw|ae|qa|ar|sg|pe"'
+  param_global_entity_id: '"TB_KW|TB_AE|TB_QA|PY_AR|FP_SG|PY_PE"'
