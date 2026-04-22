@@ -1,0 +1,7 @@
+name: _srm_supplier_scorecard_price_index_rough
+owner: Ionut Surdu
+table_description: This table contains the final pre-calculation of price indices for all
+  combinations of entity levels and time granularities
+template_params:
+  param_country_code: '"kw|ae|qa|ar|sg|pe"'
+  param_global_entity_id: '"TB_KW|TB_AE|TB_QA|PY_AR|FP_SG|PY_PE"'

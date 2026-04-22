@@ -1,0 +1,4 @@
+name: _srm_supplier_availability_category_l2_rough
+owner: Durraiz Vazeer
+execution_timeout_minutes: 60
+table_description: This table contains the aggregate supplier and L2 level availability.
