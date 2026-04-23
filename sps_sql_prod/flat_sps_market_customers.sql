@@ -12,6 +12,10 @@
 CREATE OR REPLACE TABLE `dh-darkstores-live.csm_automated_tables.sps_market_customers`
 AS
 
+-- ── PARAMS ───────────────────────────────────────────────────
+DECLARE param_country_code STRING DEFAULT r'eg|cl|sg|th|hu|es|jo|kw|ar|ae|qa|pe|tr|ua|it|om|bh|hk|ph|sa';
+-- ─────────────────────────────────────────────────────────────
+
 WITH
 date_in AS (
   SELECT DATE('2025-10-01') AS date_in
@@ -33,7 +37,7 @@ base AS (
       '-', EXTRACT(YEAR FROM order_date)
     ) AS STRING) AS quarter_year
   FROM `dh-darkstores-live.csm_automated_tables.sps_customer_order`
-  WHERE country_code = 'pe'
+  WHERE REGEXP_CONTAINS(country_code, param_country_code)
     AND (order_date BETWEEN (SELECT date_in FROM date_in).date_in
                         AND (SELECT date_fin FROM date_fin).date_fin)
   -- Sin GROUP BY de supplier — queremos todos los clientes de la plataforma

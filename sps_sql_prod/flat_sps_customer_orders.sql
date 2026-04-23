@@ -9,6 +9,13 @@
 
 CREATE OR REPLACE TABLE `dh-darkstores-live.csm_dev_automated_tables.sps_customer_order`
 AS
+
+-- ── PARAMS ───────────────────────────────────────────────────
+DECLARE param_month            STRING DEFAULT '2026-04-01';
+DECLARE param_country_code     STRING DEFAULT r'eg|cl|sg|th|hu|es|jo|kw|ar|ae|qa|pe|tr|ua|it|om|bh|hk|ph|sa';
+DECLARE param_global_entity_id STRING DEFAULT r'TB_EG|TB_CL|TB_SG|TB_TH|TB_HU|TB_ES|TB_JO|TB_KW|TB_AR|TB_AE|TB_QA|TB_PE|TB_TR|TB_UA|TB_IT|TB_OM|TB_BH|TB_HK|TB_PH|TB_SA';
+-- ─────────────────────────────────────────────────────────────
+
 WITH
 -- ── Producto con supplier + categoría desde debug ───────────
 tmp_sp_product AS (
@@ -136,7 +143,7 @@ tmp_orders AS (
     AND DATE(o.order_created_date_lt) < CURRENT_DATE()
     AND o.is_dmart IS TRUE
     AND o.is_successful IS TRUE
-    AND o.country_code = 'pe'
+    AND REGEXP_CONTAINS(o.country_code, param_country_code)
 )
 
 SELECT

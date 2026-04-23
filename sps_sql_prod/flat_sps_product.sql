@@ -12,6 +12,12 @@ CLUSTER BY
  warehouse_id,
  supplier_id
 AS
+
+-- ── PARAMS ───────────────────────────────────────────────────
+DECLARE param_country_code     STRING DEFAULT r'eg|cl|sg|th|hu|es|jo|kw|ar|ae|qa|pe|tr|ua|it|om|bh|hk|ph|sa';
+DECLARE param_global_entity_id STRING DEFAULT r'TB_EG|TB_CL|TB_SG|TB_TH|TB_HU|TB_ES|TB_JO|TB_KW|TB_AR|TB_AE|TB_QA|TB_PE|TB_TR|TB_UA|TB_IT|TB_OM|TB_BH|TB_HK|TB_PH|TB_SA';
+-- ─────────────────────────────────────────────────────────────
+
 WITH
 pim_products AS (
  SELECT
@@ -118,7 +124,7 @@ qc_catalog_products AS (
  WHERE
      vp.warehouse_id IS NOT NULL
      AND vp.warehouse_id != ''
-     AND qcp.country_code = 'pe'
+     AND REGEXP_CONTAINS(qcp.country_code, param_country_code)
  GROUP BY
      qcp.sku,
      qcp.pim_product_id,
@@ -177,7 +183,7 @@ dc_warehouse_mappings AS (
      AND pr.sku = ps.sku
  WHERE
      pr.dc_warehouse_id IS NOT NULL
-     AND REGEXP_CONTAINS(pr.country_code, 'pe')
+     AND REGEXP_CONTAINS(pr.country_code, param_country_code)
  GROUP BY
      1, 2, 3, 4, 5
 ),
@@ -211,7 +217,7 @@ products_suppliers AS (
      AND w.warehouse_id IS NOT NULL
      AND s.supplier_id IS NOT NULL
      AND dcm.warehouse_id IS NULL -- Exclude if mapped to DC
-     AND REGEXP_CONTAINS(ps.country_code, 'pe')
+     AND REGEXP_CONTAINS(ps.country_code, param_country_code)
   UNION ALL
   -- LOGIC B: Products MAPPED to a DC Warehouse
  SELECT DISTINCT
@@ -238,7 +244,7 @@ products_suppliers AS (
      s.is_supplier_deleted = FALSE
      AND w.warehouse_id IS NOT NULL
      AND s.supplier_id IS NOT NULL
-     AND REGEXP_CONTAINS(ps.country_code, 'pe')
+     AND REGEXP_CONTAINS(ps.country_code, param_country_code)
 ),
 ---
 -- CTE : Ranks Suppliers based on Preference and Product Creation Date
