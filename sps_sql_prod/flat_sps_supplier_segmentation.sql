@@ -83,8 +83,9 @@ base AS (
 -- Replica exacta del CTE percentiles del old SPS
 -- PARTITION BY: global_entity_id + time_period + time_granularity + division_type
 -- Mismo scope que el old SPS — percentiles son locales al mercado+periodo+division
+-- DISTINCT: Una sola fila por partición (los percentiles son propiedades del mercado, no del supplier)
 percentiles AS (
-  SELECT
+  SELECT DISTINCT
     global_entity_id,
     time_period,
     time_granularity,
@@ -120,10 +121,7 @@ percentiles AS (
       AS p95_customer_penetration,
     ROUND(PERCENTILE_CONT(customer_penetration, 0.15)
       OVER (PARTITION BY global_entity_id, time_period, time_granularity, division_type), 2)
-      AS p15_customer_penetration,
-
-    entity_key,
-    brand_sup
+      AS p15_customer_penetration
 
   FROM base
   WHERE gpv_flag = 'OK'  -- solo suppliers con GPV >= 1,000 EUR entran al cálculo
@@ -185,8 +183,8 @@ scoring AS (
     AND b.time_period       = p.time_period
     AND b.time_granularity  = p.time_granularity
     AND b.division_type     = p.division_type
-    AND b.entity_key        = p.entity_key
-    AND b.brand_sup         = p.brand_sup
+    -- Percentiles are market-level metrics, not supplier-specific
+    -- All suppliers in the partition get the same p15/p95 values
 ),
 
 -- ── Aggregation: sumar componentes de productividad ──────────────────────────
