@@ -10,7 +10,7 @@ DECLARE param_date_end         DATE   DEFAULT CURRENT_DATE();
 -- SPS Execution: Position No. 3
 -- Full range (no incremental): 2025-10-01 → CURRENT_DATE()
 
-CREATE OR REPLACE TABLE `dh-darkstores-live.csm_dev_automated_tables.sps_customer_order`
+CREATE OR REPLACE TABLE `dh-darkstores-live.csm_automated_tables.sps_customer_order`
 AS
 
 WITH
@@ -35,7 +35,7 @@ tmp_sp_product AS (
     COALESCE(sp.level_three, '_unknown_') AS level_three,
     sp.region_code,
     MAX(sp.updated_at) AS last_updated
-  FROM `dh-darkstores-live.csm_dev_automated_tables.sps_product` AS sp
+  FROM `dh-darkstores-live.csm_automated_tables.sps_product` AS sp
   WHERE REGEXP_CONTAINS(sp.global_entity_id, param_global_entity_id)
   GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17
 ),
@@ -235,7 +235,7 @@ SELECT
   -- 8. Partitioning
   DATE_TRUNC(te_o.order_date, MONTH) AS partition_month
 FROM tmp_orders AS te_o
-LEFT JOIN tmp_sp_product AS sp_exact
+INNER JOIN tmp_sp_product AS sp_exact
   ON te_o.sku_id = sp_exact.sku_id
   AND te_o.global_entity_id = sp_exact.global_entity_id
   AND te_o.warehouse_id = sp_exact.warehouse_id
