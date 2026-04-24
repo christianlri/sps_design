@@ -1,6 +1,5 @@
--- ============================================================
--- SPS DEBUG | PY_PE | 14b sps_supplier_segmentation
--- Pos: 14b | Downstream de sps_score_tableau
+-- This table classifies suppliers based on sps_score_tableau metrics.
+-- SPS Execution: Position No. 14b
 -- Propósito: clasificar suppliers en Key Accounts / Standard /
 --            Niche / Long Tail usando dos ejes:
 --   Importancia  = Net Profit LC (percentil vs peers del mercado)

@@ -1,6 +1,5 @@
--- ============================================================
--- SPS DEBUG | FINAL | sps_score_tableau with ALL ingredientes
--- ============================================================
+-- This table aggregates all metrics for Supplier Scorecards and exports to Tableau.
+-- SPS Execution: Position No. 14a
 -- Ingredientes desde sps_price_index:
 --   price_index_numerator: SUM(median_bp_index * sku_gpv_eur)
 --   price_index_weight: SUM(sku_gpv_eur)
