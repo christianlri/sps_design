@@ -1,14 +1,20 @@
--- This table extracts and maintains the line rebate mapping required for generating Supplier Scorecards. 
+-- ── PARAMS ───────────────────────────────────────────────────
+DECLARE param_global_entity_id STRING DEFAULT r'TB_EG|TB_CL|TB_SG|TB_TH|TB_HU|TB_ES|TB_JO|TB_KW|TB_AR|TB_AE|TB_QA|TB_PE|TB_TR|TB_UA|TB_IT|TB_OM|TB_BH|TB_HK|TB_PH|TB_SA';
+DECLARE param_date_start       DATE   DEFAULT DATE('2025-10-01');
+DECLARE param_date_end         DATE   DEFAULT CURRENT_DATE();
+-- ─────────────────────────────────────────────────────────────
+
+-- This table extracts and maintains the line rebate mapping required for generating Supplier Scorecards.
 -- SPS Execution: Position No. 4.1
 -- DML SCRIPT: SPS Refact Incremental Refresh for dh-darkstores-live.csm_automated_tables.sps_line_rebate_metrics_month
 CREATE OR REPLACE TABLE `dh-darkstores-live.csm_automated_tables.sps_line_rebate_metrics_month`
 AS
 WITH
 date_in AS (
-  SELECT DATE('2025-10-01') AS date_in
+  SELECT param_date_start AS date_in
 ),
 date_fin AS (
-  SELECT CURRENT_DATE() AS date_fin
+  SELECT param_date_end AS date_fin
 ),
 sps_product AS (
     SELECT

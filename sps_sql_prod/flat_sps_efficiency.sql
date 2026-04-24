@@ -1,6 +1,12 @@
 -- This table aggregates efficiency metrics for generating Supplier Scorecards.
 -- SPS Execution: Position No. 7.2
 
+-- ── PARAMS ───────────────────────────────────────────────────
+DECLARE param_global_entity_id STRING DEFAULT r'TB_EG|TB_CL|TB_SG|TB_TH|TB_HU|TB_ES|TB_JO|TB_KW|TB_AR|TB_AE|TB_QA|TB_PE|TB_TR|TB_UA|TB_IT|TB_OM|TB_BH|TB_HK|TB_PH|TB_SA';
+DECLARE param_date_start       DATE   DEFAULT DATE('2025-10-01');
+DECLARE param_date_end         DATE   DEFAULT CURRENT_DATE();
+-- ─────────────────────────────────────────────────────────────
+
 CREATE OR REPLACE TABLE `dh-darkstores-live.csm_automated_tables.sps_efficiency`
 CLUSTER BY
    global_entity_id,
