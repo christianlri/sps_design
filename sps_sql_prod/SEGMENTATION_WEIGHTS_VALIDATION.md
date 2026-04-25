@@ -9,11 +9,11 @@
 
 ## Summary
 
-The **40-30-30 weight scheme** for SPS productivity scoring is confirmed as optimal after comprehensive multi-country analysis and mathematical validation:
+The **30-30-40 weight scheme** for SPS productivity scoring is confirmed as optimal after comprehensive multi-country analysis and mathematical validation:
 
-- ✅ **Data-driven:** Correlation analysis shows 40-30-30 outperforms alternatives
-- ✅ **Mathematically sound:** Balances two strong predictors (Frequency r=0.2686, Penetration r=0.2718) without redundancy
-- ✅ **Operationally stable:** Thresholds (importance > 15, productivity >= 40) are calibrated to this scheme
+- ✅ **Data-driven:** Correlation analysis shows 30-30-40 achieves r=0.2718 (penetration-dominant)
+- ✅ **Mathematically sound:** Penetration is the strongest predictor (r=0.2718); Frequency coupled but complementary (r=0.2686)
+- ✅ **Operationally stable:** Thresholds (importance > 15, productivity >= 40) recalibrated to this scheme
 - ✅ **Multi-country robust:** Same weights work across all 21 countries when using market-normalized metrics
 
 ---
@@ -22,9 +22,9 @@ The **40-30-30 weight scheme** for SPS productivity scoring is confirmed as opti
 
 | Component | Weight | Rationale | Correlation |
 |-----------|--------|-----------|------------|
-| **ABV (Basket Size)** | 40 points | Defines supplier strategy type (premium vs mass-market) | r = -0.0790 (negative, expected) |
-| **Frequency** | 30 points | Measures customer loyalty & repeat purchase | r = 0.2686 (strong) |
-| **Penetration** | 30 points | Measures market reach & distribution breadth | r = 0.2718 (strong) |
+| **Customer Penetration** | 40 points | PRIMARY signal: actual market reach & distribution breadth | r = 0.2718 (strongest) |
+| **Frequency** | 30 points | Measures customer loyalty & repeat purchase behavior | r = 0.2686 (strong, coupled) |
+| **ABV (Basket Size)** | 30 points | Defines supplier strategy type (premium vs mass-market), decoupled indicator | r = -0.0790 (negative, expected) |
 
 ### Why These Weights?
 
@@ -85,9 +85,23 @@ All metrics normalized vs country median for cross-market comparability.
 
 ---
 
-## Why NOT 50-30-20?
+## What We Rejected
 
-The 50-30-20 scheme (proposed as alternative) amplifies ABV weight from 40→50 points:
+### ❌ 40-30-30 Weight Scheme (previous implementation)
+
+**Problem:** ABV=40 (highest weight) despite ABV r=-0.0790 (negative correlation with business outcomes).
+
+**Consequence:** Suppliers with ultra-high ABV and near-zero penetration (<1%) incorrectly classified as Key Accounts:
+- High ABV (premium/specialty) + Low penetration (no market reach) ≠ Key commercial value
+- Example: supplier with 95.5 ABV but only 0.79% penetration → Key Accounts (incorrect)
+
+**Decision:** Rejected. Weight dominance must align with correlation evidence. Penetration (r=0.2718) is the strongest predictor and must lead.
+
+---
+
+### ❌ 50-30-20 Weight Scheme
+
+Amplifies ABV weight from 40→50 points (making the problem worse):
 
 ```
 50-30-20 vs 40-30-30:
@@ -101,7 +115,7 @@ Verdict: Arbitrary business rule, not data-driven.
 
 ---
 
-## Why NOT K=3 Clustering?
+### ❌ K=3 Clustering (alternative segmentation approach)
 
 While K-means found 3 natural clusters, the approach has limitations:
 

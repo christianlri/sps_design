@@ -7,10 +7,10 @@
 -- Scope: supplier_level='supplier', Monthly, division+principal+brand_owner
 -- Fuente: sps_score_tableau + sps_market_customers (ya joineado)
 -- Replica: old SPS _srm_supplier_scorecard_supplier_segmentation_rough.sql
--- Pesos de Productividad (v2):
---   ABV (cesta) = 40 puntos (priorizado)
---   Frequency (lealtad) = 30 puntos
---   Customer Penetration (alcance) = 30 puntos (balanceado)
+-- Pesos de Productividad (v3, validados 2026-04-25):
+--   Penetration (alcance) = 40 puntos (PRIMARY signal, r=0.2718)
+--   Frequency (lealtad) = 30 puntos (r=0.2686)
+--   ABV (tipo estrategia) = 30 puntos (r=-0.0790, desacoplado)
 -- Diferencias vs old SPS:
 --   (1) Fuente: sps_score_tableau en lugar de _srm_supplier_scorecard_supplier_rough
 --   (2) Efficiency: AQS v7 (weight_efficiency/gpv_eur) en lugar de v5
@@ -161,17 +161,17 @@ scoring AS (
 
     -- ── EJE 2: PRODUCTIVIDAD — componentes ─────────────────────────────────
 
-    -- ABV score (peso 40 puntos) — priorizado
+    -- ABV score (peso 30 puntos) — estrategia de tipo supplier (premium vs mass-market)
     -- Suppliers con gpv_flag = 'Not Applicable' reciben score 0
     CASE
       WHEN b.gpv_flag = 'Not Applicable' THEN 0.0
       ELSE ROUND(COALESCE(CASE
-        WHEN b.abv_lc_order >= p.p95_abv_lc THEN 40.0
+        WHEN b.abv_lc_order >= p.p95_abv_lc THEN 30.0
         WHEN b.abv_lc_order <= p.p15_abv_lc THEN 0.0
         ELSE SAFE_DIVIDE(
           b.abv_lc_order - p.p15_abv_lc,
           p.p95_abv_lc - p.p15_abv_lc
-        ) * 40
+        ) * 30
       END, 0), 3)
     END                                                      AS abv_score_lc,
 
@@ -189,18 +189,18 @@ scoring AS (
       END, 0), 3)
     END                                                      AS frequency_score,
 
-    -- Customer penetration score (peso 30 puntos) — balanceado
-    -- Penetration es indicador de alcance en el mercado
+    -- Customer penetration score (peso 40 puntos) — PRIMARY signal de alcance en mercado
+    -- Penetration es el indicador más fuerte de valor comercial
     -- Suppliers con gpv_flag = 'Not Applicable' reciben score 0
     CASE
       WHEN b.gpv_flag = 'Not Applicable' THEN 0.0
       ELSE ROUND(COALESCE(CASE
-        WHEN b.customer_penetration >= p.p95_customer_penetration THEN 30.0
+        WHEN b.customer_penetration >= p.p95_customer_penetration THEN 40.0
         WHEN b.customer_penetration <= p.p15_customer_penetration THEN 0.0
         ELSE SAFE_DIVIDE(
           b.customer_penetration - p.p15_customer_penetration,
           p.p95_customer_penetration - p.p15_customer_penetration
-        ) * 30
+        ) * 40
       END, 0), 3)
     END                                                      AS customer_penetration_score
 
