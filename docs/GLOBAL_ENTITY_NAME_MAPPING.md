@@ -14,10 +14,10 @@ Esto permite que Tableau agregue y filtre por marca sin necesidad de decodificar
 |-----------|-----------|-------------|----------|
 | `PY` | **PedidosYa** | Latin American delivery platform | PY_AR, PY_CL, PY_PE |
 | `HS` | **HungerStation** | Middle East delivery platform | HS_SA |
-| `TB` | **Talabat** | Middle East delivery platform | TB_AE, TB_BH, TB_JO, TB_KW, TB_OM, TB_QA |
-| `FP`, `FD`, `YS` | **Pandora** | Asian delivery platform | FP_HK, FP_PH, FP_SG, YS_TR |
+| `TB`, `HF` | **Talabat** | Middle East delivery platform | TB_AE, TB_BH, TB_JO, TB_KW, TB_OM, TB_QA, HF_EG |
+| `FP`, `FD`, `YS`, `NP` | **Pandora** | Asian delivery platform | FP_HK, FP_PH, FP_SG, YS_TR, NP_HU |
 | `GV` | **Glovo** | European delivery platform | GV_ES, GV_IT, GV_UA |
-| `IN`, `NP`, `HF` | **Other** | Regional/sandbox entities | IN_AE, IN_EG, NP_HU, HF_EG |
+| `IN` | **Instashop** | Indian delivery platform | IN_AE, IN_EG |
 
 ---
 
@@ -27,10 +27,10 @@ Esto permite que Tableau agregue y filtre por marca sin necesidad de decodificar
 CASE
   WHEN SUBSTR(b.global_entity_id, 1, 2) = 'PY' THEN 'PedidosYa'
   WHEN SUBSTR(b.global_entity_id, 1, 2) = 'HS' THEN 'HungerStation'
-  WHEN SUBSTR(b.global_entity_id, 1, 2) = 'TB' THEN 'Talabat'
-  WHEN SUBSTR(b.global_entity_id, 1, 2) IN ('FP', 'FD', 'YS') THEN 'Pandora'
+  WHEN SUBSTR(b.global_entity_id, 1, 2) IN ('TB', 'HF') THEN 'Talabat'
+  WHEN SUBSTR(b.global_entity_id, 1, 2) IN ('FP', 'FD', 'YS', 'NP') THEN 'Pandora'
   WHEN SUBSTR(b.global_entity_id, 1, 2) = 'GV' THEN 'Glovo'
-  WHEN SUBSTR(b.global_entity_id, 1, 2) IN ('IN', 'NP', 'HF') THEN 'Other'
+  WHEN SUBSTR(b.global_entity_id, 1, 2) = 'IN' THEN 'Instashop'
   ELSE 'Unknown'
 END AS global_entity_name
 ```
@@ -47,12 +47,12 @@ END AS global_entity_name
 **Verificado en BigQuery (202604):**
 
 ```
-Glovo:            9,451 rows (3 entidades: ES, IT, UA)
-HungerStation:   32,791 rows (1 entidad: SA)
-Talabat:         68,369 rows (6 entidades: AE, BH, JO, KW, OM, QA)
-Pandora:         24,752 rows (4 entidades: HK, PH, SG, TR)
+Talabat:         74,361 rows (7 entidades: AE, BH, JO, KW, OM, QA, EG)
+Pandora:         42,895 rows (5 entidades: HK, PH, SG, TR, HU)
 PedidosYa:       30,224 rows (3 entidades: AR, CL, PE)
-Other:           27,158 rows (3 entidades: AE, EG, HU, EG)
+HungerStation:   32,791 rows (1 entidad: SA)
+Glovo:            9,451 rows (3 entidades: ES, IT, UA)
+Instashop:           24 rows (2 entidades: AE, EG)
 ─────────────────────────────────────────────────
 Total:          182,745 rows
 ```
@@ -132,8 +132,14 @@ LIMIT 10
 ### Q: ¿Qué pasa si aparece un nuevo prefix?
 A: Actualizar el CASE statement en `flat_sps_supplier_master.sql` y re-ejecutar.
 
-### Q: ¿Por qué FP, FD, YS mapean a Pandora?
-A: Son variantes de regional entities dentro de Pandora (Food Panda, Food Delivery, etc.). Se unificaron bajo "Pandora" por estrategia de reporting.
+### Q: ¿Por qué FP, FD, YS, NP mapean a Pandora?
+A: Son variantes de regional entities dentro de Pandora (Food Panda, Food Delivery, Yet Sharing, NexPay, etc.). Se unificaron bajo "Pandora" por estrategia de reporting.
+
+### Q: ¿Y HF_EG (Egypt)?
+A: HF_EG es parte del operaciones Talabat en Egypt, no una entidad independiente.
+
+### Q: ¿Y IN_AE e IN_EG?
+A: Son sandbox/test entities de Instashop. Muy pocos datos (~24 rows total).
 
 ### Q: ¿El campo es case-sensitive?
 A: No. El CASE statement es determinístico: siempre 'PedidosYa', nunca 'PEDIDOSYA' o 'pedidosya'.

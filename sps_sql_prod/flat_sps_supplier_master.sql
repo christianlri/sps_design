@@ -94,10 +94,10 @@ SELECT
   CASE
     WHEN SUBSTR(b.global_entity_id, 1, 2) = 'PY' THEN 'PedidosYa'
     WHEN SUBSTR(b.global_entity_id, 1, 2) = 'HS' THEN 'HungerStation'
-    WHEN SUBSTR(b.global_entity_id, 1, 2) = 'TB' THEN 'Talabat'
-    WHEN SUBSTR(b.global_entity_id, 1, 2) IN ('FP', 'FD', 'YS') THEN 'Pandora'
+    WHEN SUBSTR(b.global_entity_id, 1, 2) IN ('TB', 'HF') THEN 'Talabat'
+    WHEN SUBSTR(b.global_entity_id, 1, 2) IN ('FP', 'FD', 'YS', 'NP') THEN 'Pandora'
     WHEN SUBSTR(b.global_entity_id, 1, 2) = 'GV' THEN 'Glovo'
-    WHEN SUBSTR(b.global_entity_id, 1, 2) IN ('IN', 'NP', 'HF') THEN 'Other'
+    WHEN SUBSTR(b.global_entity_id, 1, 2) = 'IN' THEN 'Instashop'
     ELSE 'Unknown'
   END AS global_entity_name,
 
