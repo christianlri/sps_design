@@ -169,21 +169,22 @@ SELECT
   seg.frequency_score,
   seg.customer_penetration_score,
 
-  -- ── Weighted scores (ponderados por Net_Sales_lc) ─────────────────────
+  -- ── Weighted scores (ponderados por Net_Sales_eur) ─────────────────────
   -- Numeradores — para poder agregar correctamente en Tableau
-  -- weighted_X = score_X * Net_Sales_lc → SUM(num)/SUM(Net_Sales_lc) da el weighted avg
-  ROUND(sc.score_fill_rate    * b.Net_Sales_lc, 4) AS wscore_num_fill_rate,
-  ROUND(sc.score_otd          * b.Net_Sales_lc, 4) AS wscore_num_otd,
-  ROUND(sc.score_yoy          * b.Net_Sales_lc, 4) AS wscore_num_yoy,
-  ROUND(sc.score_efficiency   * b.Net_Sales_lc, 4) AS wscore_num_efficiency,
-  ROUND(sc.score_gbd          * b.Net_Sales_lc, 4) AS wscore_num_gbd,
-  ROUND(sc.score_back_margin  * b.Net_Sales_lc, 4) AS wscore_num_back_margin,
-  ROUND(sc.score_front_margin * b.Net_Sales_lc, 4) AS wscore_num_front_margin,
-  ROUND(sc.operations_score   * b.Net_Sales_lc, 4) AS wscore_num_operations,
-  ROUND(sc.commercial_score   * b.Net_Sales_lc, 4) AS wscore_num_commercial,
-  ROUND(sc.total_score        * b.Net_Sales_lc, 4) AS wscore_num_total,
+  -- weighted_X = score_X * Net_Sales_eur → SUM(num)/SUM(Net_Sales_eur) da el weighted avg
+  -- Usar EUR para estandarizar el peso en múltiples monedas locales
+  ROUND(sc.score_fill_rate    * b.Net_Sales_eur, 4) AS wscore_num_fill_rate,
+  ROUND(sc.score_otd          * b.Net_Sales_eur, 4) AS wscore_num_otd,
+  ROUND(sc.score_yoy          * b.Net_Sales_eur, 4) AS wscore_num_yoy,
+  ROUND(sc.score_efficiency   * b.Net_Sales_eur, 4) AS wscore_num_efficiency,
+  ROUND(sc.score_gbd          * b.Net_Sales_eur, 4) AS wscore_num_gbd,
+  ROUND(sc.score_back_margin  * b.Net_Sales_eur, 4) AS wscore_num_back_margin,
+  ROUND(sc.score_front_margin * b.Net_Sales_eur, 4) AS wscore_num_front_margin,
+  ROUND(sc.operations_score   * b.Net_Sales_eur, 4) AS wscore_num_operations,
+  ROUND(sc.commercial_score   * b.Net_Sales_eur, 4) AS wscore_num_commercial,
+  ROUND(sc.total_score        * b.Net_Sales_eur, 4) AS wscore_num_total,
   -- Denominador compartido para todos los weighted scores
-  b.Net_Sales_lc                                   AS wscore_denom
+  b.Net_Sales_eur                                  AS wscore_denom
 
 FROM base b
 LEFT JOIN `dh-darkstores-live.csm_automated_tables.sps_supplier_scoring` sc
