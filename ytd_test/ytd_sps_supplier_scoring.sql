@@ -26,7 +26,7 @@ ratios AS (
     )                                                                   AS front_margin_ratio
   FROM `dh-darkstores-live.csm_automated_tables.ytd_sps_score_tableau` st
   WHERE st.supplier_level    = 'supplier'
-    AND st.time_granularity  = 'Monthly'
+    AND st.time_granularity  IN ('Monthly', 'YTD')
     AND st.division_type     IN ('division', 'principal')
     AND st.Net_Sales_eur     > 1000
   GROUP BY
@@ -35,10 +35,22 @@ ratios AS (
     st.fill_rate, st.otd
 ),
 
+-- CTE para resolver time_period de referencia para parámetros de scoring
+-- YTD debe usar los parámetros del último período Monthly disponible,
+-- no parámetros YTD inexistentes o que distorsionarían los percentiles
+params_key AS (
+  SELECT
+    global_entity_id,
+    MAX(time_period) AS latest_monthly_period
+  FROM `dh-darkstores-live.csm_automated_tables.ytd_sps_scoring_params`
+  GROUP BY global_entity_id
+),
+
 yoy_thresh AS (
-  SELECT global_entity_id, time_period, time_granularity,
+  SELECT global_entity_id, time_period,
     LEAST(GREATEST(market_yoy_lc * 1.2, 0.20), 0.70) AS yoy_max
   FROM `dh-darkstores-live.csm_automated_tables.ytd_sps_market_yoy`
+  WHERE time_granularity = 'Monthly'
 )
 
 SELECT
@@ -167,10 +179,19 @@ SELECT
   ) / 2.0, 1) AS total_score
 
 FROM ratios r
+LEFT JOIN params_key pk
+  ON r.global_entity_id = pk.global_entity_id
 LEFT JOIN `dh-darkstores-live.csm_automated_tables.ytd_sps_scoring_params` p
   ON  r.global_entity_id = p.global_entity_id
-  AND r.time_period      = p.time_period
+  AND p.time_period = CASE
+    WHEN r.time_granularity = 'YTD'
+      THEN pk.latest_monthly_period
+    ELSE r.time_period
+  END
 LEFT JOIN yoy_thresh y
   ON  r.global_entity_id = y.global_entity_id
-  AND r.time_period      = y.time_period
-  AND r.time_granularity = y.time_granularity
+  AND y.time_period = CASE
+    WHEN r.time_granularity = 'YTD'
+      THEN pk.latest_monthly_period
+    ELSE r.time_period
+  END

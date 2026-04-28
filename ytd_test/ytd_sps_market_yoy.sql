@@ -11,6 +11,7 @@ SELECT
 FROM `dh-darkstores-live.csm_automated_tables.ytd_sps_score_tableau`
 WHERE supplier_level    = 'supplier'
   AND division_type     = 'division'
+  AND time_granularity  = 'Monthly'
   AND Net_Sales_eur     > 1000
   AND Net_Sales_eur_Last_Year > 0
 GROUP BY global_entity_id, time_period, time_granularity

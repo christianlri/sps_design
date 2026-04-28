@@ -85,7 +85,7 @@ base AS (
 
   FROM `dh-darkstores-live.csm_automated_tables.ytd_sps_score_tableau`
   WHERE supplier_level   = 'supplier'
-    AND time_granularity = 'Monthly'
+    AND time_granularity IN ('Monthly', 'YTD')
     AND division_type    IN ('division', 'principal', 'brand_owner')
 ),
 
