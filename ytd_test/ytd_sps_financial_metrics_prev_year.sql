@@ -47,12 +47,14 @@ aggregated AS (
         ELSE 'total'
     END AS brand_sup,
     COALESCE(
-      IF(GROUPING(l3_master_category) = 0, l3_master_category, NULL),
-      IF(GROUPING(l2_master_category) = 0, l2_master_category, NULL),
-      IF(GROUPING(l1_master_category) = 0, l1_master_category, NULL),
-      IF(GROUPING(brand_name) = 0, brand_name, NULL),
-      IF(GROUPING(brand_owner_name) = 0, brand_owner_name, NULL),
-      IF(GROUPING(supplier_id) = 0, supplier_id, NULL),
+      IF(GROUPING(l3_master_category) = 0,       l3_master_category, NULL),
+      IF(GROUPING(l2_master_category) = 0,       l2_master_category, NULL),
+      IF(GROUPING(l1_master_category) = 0,       l1_master_category, NULL),
+      IF(GROUPING(front_facing_level_two) = 0,   front_facing_level_two, NULL),
+      IF(GROUPING(front_facing_level_one) = 0,   front_facing_level_one, NULL),
+      IF(GROUPING(brand_name) = 0,               brand_name, NULL),
+      IF(GROUPING(brand_owner_name) = 0,         brand_owner_name, NULL),
+      IF(GROUPING(supplier_id) = 0,              supplier_id, NULL),
       principal_supplier_id
     ) AS entity_key,
     CASE 
@@ -63,11 +65,13 @@ aggregated AS (
         ELSE 'total'
     END AS division_type,
     CASE 
-        WHEN GROUPING(l3_master_category) = 0 THEN 'level_three' 
-        WHEN GROUPING(l2_master_category) = 0 THEN 'level_two' 
-        WHEN GROUPING(l1_master_category) = 0 THEN 'level_one' 
-        WHEN GROUPING(brand_name) = 0 THEN 'brand_name'
-        ELSE 'supplier' 
+    WHEN GROUPING(l3_master_category) = 0      THEN 'level_three' 
+    WHEN GROUPING(l2_master_category) = 0      THEN 'level_two' 
+    WHEN GROUPING(l1_master_category) = 0      THEN 'level_one'
+    WHEN GROUPING(front_facing_level_two) = 0  THEN 'front_facing_level_two'
+    WHEN GROUPING(front_facing_level_one) = 0  THEN 'front_facing_level_one'
+    WHEN GROUPING(brand_name) = 0              THEN 'brand_name'
+    ELSE 'supplier' 
     END AS supplier_level,
     CASE
       WHEN GROUPING(month) = 0 THEN 'Monthly'
@@ -76,8 +80,6 @@ aggregated AS (
     END AS time_granularity,
     CAST(ROUND(IFNULL(SUM(total_price_paid_net_eur),0), 2) AS NUMERIC) AS Net_Sales_eur_LY,
     CAST(ROUND(IFNULL(SUM(total_price_paid_net_lc),0), 2) AS NUMERIC) AS Net_Sales_lc_LY,
-    front_facing_level_one,
-    front_facing_level_two
   FROM filtered_ly
   GROUP BY GROUPING SETS (
     -- MONTHLY BREAKDOWNS
