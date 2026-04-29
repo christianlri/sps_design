@@ -31,9 +31,23 @@ WITH all_keys AS (
     UNION ALL
     SELECT global_entity_id, time_period, brand_sup, entity_key, division_type, supplier_level, time_granularity FROM `{{ params.project_id }}.{{ params.dataset.cl }}.sps_purchase_order`
   )
+),
+-- ── Supplier names mapping: extract distinct supplier_id → supplier_name from sps_product ─
+sps_product_clean AS (
+  SELECT DISTINCT
+    CAST(supplier_id AS STRING) as supplier_id,
+    supplier_name,
+    global_entity_id
+  FROM `{{ params.project_id }}.{{ params.dataset.cl }}.sps_product`
+  WHERE supplier_id IS NOT NULL
 )
 SELECT
   o.*,
+  -- Supplier name: join brand_sup with sps_product for division/principal suppliers, else fallback to brand_sup
+  CASE
+    WHEN o.division_type IN ('division', 'principal') THEN COALESCE(p.supplier_name, o.brand_sup)
+    ELSE o.brand_sup
+  END AS supplier_name,
   -- Purchase order metrics (from sps_purchase_order)
   po.on_time_orders,
   po.total_received_qty_per_po_order,
@@ -99,6 +113,11 @@ SELECT
   deliv.delivery_cost_eur,
   deliv.delivery_cost_local
 FROM all_keys o
+-- Supplier names (from sps_product, filtered to division/principal only)
+LEFT JOIN sps_product_clean p
+  ON o.global_entity_id = p.global_entity_id
+  AND CAST(o.brand_sup AS STRING) = p.supplier_id
+  AND o.division_type IN ('division', 'principal')
 -- Purchase order (all keys start here, but now joined from all_keys instead)
 LEFT JOIN `{{ params.project_id }}.{{ params.dataset.cl }}.sps_purchase_order` AS po
   ON o.global_entity_id = po.global_entity_id AND o.time_period = po.time_period AND o.time_granularity = po.time_granularity AND o.division_type = po.division_type AND o.supplier_level = po.supplier_level AND o.entity_key = po.entity_key AND o.brand_sup = po.brand_sup
