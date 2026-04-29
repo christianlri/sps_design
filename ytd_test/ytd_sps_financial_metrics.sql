@@ -87,8 +87,6 @@ current_year_data AS (
     ------- Other aggregated metrics ---------------
     CAST(ROUND(SUM (amt_gbv_eur_dedup),2) AS NUMERIC) AS total_GBV,
     CAST(ROUND(SUM (fulfilled_quantity),2) AS NUMERIC) AS fulfilled_quantity,
-    front_facing_level_one,
-    front_facing_level_two
   FROM (
     SELECT
       src.*,
@@ -114,11 +112,14 @@ current_year_data AS (
       THEN src.amt_gbv_eur ELSE 0 END AS amt_gbv_eur_dedup
 
     FROM `dh-darkstores-live.csm_automated_tables.ytd_sps_financial_metrics_month` AS src
-    WHERE (EXTRACT(YEAR FROM DATE(src.month)) = (SELECT current_year FROM date_config)
-           AND DATE(src.month) <= (SELECT today FROM date_config))
-      OR (EXTRACT(YEAR FROM DATE(src.month)) = (SELECT prior_year FROM date_config)
-          AND DATE(src.month) <= DATE_SUB((SELECT today FROM date_config), INTERVAL 1 YEAR))
-      AND REGEXP_CONTAINS(src.global_entity_id, param_global_entity_id)
+WHERE (
+    (EXTRACT(YEAR FROM DATE(src.month)) = (SELECT current_year FROM date_config)
+     AND DATE(src.month) <= (SELECT today FROM date_config))
+    OR
+    (EXTRACT(YEAR FROM DATE(src.month)) = (SELECT prior_year FROM date_config)
+     AND DATE(src.month) <= DATE_SUB((SELECT today FROM date_config), INTERVAL 1 YEAR))
+  )
+  AND REGEXP_CONTAINS(src.global_entity_id, param_global_entity_id)
   )
 GROUP BY GROUPING SETS (
     -- ==========================================================
@@ -211,6 +212,16 @@ GROUP BY GROUPING SETS (
     (quarter_year, global_entity_id, brand_name, front_facing_level_one),
     (quarter_year, global_entity_id, brand_name, front_facing_level_two),
 
+    -- 4. FRONT-FACING CATEGORY DEEP-DIVE (YTD)
+    (ytd_year, global_entity_id, principal_supplier_id, front_facing_level_one),
+    (ytd_year, global_entity_id, principal_supplier_id, front_facing_level_two),
+    (ytd_year, global_entity_id, supplier_id, front_facing_level_one),
+    (ytd_year, global_entity_id, supplier_id, front_facing_level_two),
+    (ytd_year, global_entity_id, brand_owner_name, front_facing_level_one),
+    (ytd_year, global_entity_id, brand_owner_name, front_facing_level_two),
+    (ytd_year, global_entity_id, brand_name, front_facing_level_one),
+    (ytd_year, global_entity_id, brand_name, front_facing_level_two),
+
     -- YTD BREAKDOWNS (ytd_year)
     (ytd_year, global_entity_id, principal_supplier_id),
     (ytd_year, global_entity_id, supplier_id),
@@ -242,9 +253,6 @@ SELECT
   -- Calculations
   CAST(ROUND(SAFE_DIVIDE(cy.Net_Sales_eur - ly.Net_Sales_eur_LY, NULLIF(ly.Net_Sales_eur_LY, 0)), 3) AS NUMERIC) AS YoY_GPV_Growth_eur,
   CAST(ROUND(SAFE_DIVIDE(cy.Net_Sales_lc - ly.Net_Sales_lc_LY, NULLIF(ly.Net_Sales_lc_LY, 0)), 3) AS NUMERIC) AS YoY_GPV_Growth_lc,
-  r.total_rebate AS back_margin_amt_lc,
-  COALESCE(r.total_rebate_wo_dist_allowance_lc, 0.0) AS back_margin_wo_dist_allowance_amt_lc,
-  CAST(ROUND(SAFE_DIVIDE(cy.Net_Sales_lc + cy.total_supplier_funding_lc - cy.COGS_lc +  COALESCE(r.total_rebate, 0.0), NULLIF(cy.Net_Sales_lc, 0)), 4) AS NUMERIC) AS Total_Margin_LC,
   CAST(ROUND(SAFE_DIVIDE(cy.Net_Sales_eur + cy.total_supplier_funding_eur - cy.COGS_eur , NULLIF(cy.Net_Sales_eur, 0)), 4) AS NUMERIC) AS Front_Margin_eur,
   CAST(ROUND(SAFE_DIVIDE(cy.Net_Sales_lc + cy.total_supplier_funding_lc - cy.COGS_lc , NULLIF(cy.Net_Sales_lc, 0)), 4) AS NUMERIC) AS Front_Margin_lc,
 FROM current_year_data cy
@@ -256,11 +264,3 @@ LEFT JOIN `dh-darkstores-live.csm_automated_tables.ytd_sps_financial_metrics_pre
   AND cy.supplier_level = ly.supplier_level
   AND cy.time_period = ly.join_time_period
   AND cy.time_granularity = ly.time_granularity
-LEFT JOIN `dh-darkstores-live.csm_automated_tables.ytd_sps_line_rebate_metrics` AS r
-  ON cy.global_entity_id = r.global_entity_id
-  AND cy.brand_sup = r.brand_sup
-  AND cy.entity_key = r.entity_key
-  AND cy.division_type = r.division_type
-  AND cy.supplier_level = r.supplier_level
-  AND cy.time_period = r.time_period
-  AND cy.time_granularity = r.time_granularity

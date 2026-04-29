@@ -208,5 +208,15 @@ GROUP BY GROUPING SETS (
 
     (ytd_year, global_entity_id, brand_name, l1_master_category),
     (ytd_year, global_entity_id, brand_name, l2_master_category),
-    (ytd_year, global_entity_id, brand_name, l3_master_category)
+    (ytd_year, global_entity_id, brand_name, l3_master_category),
+
+    -- 4. FRONT-FACING CATEGORY DEEP-DIVE (YTD)
+    (ytd_year, global_entity_id, principal_supplier_id, front_facing_level_one),
+    (ytd_year, global_entity_id, principal_supplier_id, front_facing_level_two),
+    (ytd_year, global_entity_id, supplier_id, front_facing_level_one),
+    (ytd_year, global_entity_id, supplier_id, front_facing_level_two),
+    (ytd_year, global_entity_id, brand_owner_name, front_facing_level_one),
+    (ytd_year, global_entity_id, brand_owner_name, front_facing_level_two),
+    (ytd_year, global_entity_id, brand_name, front_facing_level_one),
+    (ytd_year, global_entity_id, brand_name, front_facing_level_two)
 );
