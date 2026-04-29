@@ -19,7 +19,7 @@ date_in AS (
     CAST('{{ params.backfill_end_date }}' AS DATE) AS date_fin
     {%- endif %}
 )
-, tmp_sp_product AS (
+,tmp_sp_product AS (
  SELECT
    sp.global_entity_id,
    sp.country_code,
@@ -53,25 +53,32 @@ tmp_efficiency AS (
    e.global_entity_id,
    e.warehouse_id,
    e.sku AS sku_id,
-   e.date_diff,
+   e.updated_sku_age,
+   e.sku_efficiency,
    e.avg_qty_sold,
    e.new_availability,
+   e.numerator_new_avail,
+   e.denom_new_avail,
+   e.available_hours,
+   e.potential_hours,
+   e.is_listed,
+   e.sku_status,
    e.sold_items,
    e.gpv_eur,
    STRING(e.month) AS month,
    CAST(CONCAT('Q', EXTRACT(QUARTER FROM e.month), '-', EXTRACT(YEAR FROM e.month)) AS STRING) AS quarter_year,
- FROM `{{ params.project_id }}.{{ params.dataset.rl }}._aqs_v5_sku_efficiency_detail` AS e
+ FROM `{{ params.project_id }}.{{ params.dataset.cl }}.sku_efficiency_detail_v2` AS e
  WHERE TRUE
     AND (DATE_TRUNC(e.partition_month, MONTH) BETWEEN (SELECT date_in FROM date_in).date_in AND (SELECT date_fin FROM date_fin).date_fin)
     AND REGEXP_CONTAINS(e.global_entity_id, {{ params.param_global_entity_id }})
 )
-SELECT 
+SELECT
   CASE
     WHEN DATE_TRUNC(CAST(te.month AS DATE), MONTH) = DATE_TRUNC(CAST('{{ next_ds }}' AS DATE), MONTH)
     THEN CAST('{{ next_ds }}' AS DATE)
       ELSE LAST_DAY(CAST(te.month AS DATE))
   END AS partition_month,
-  te.*, 
+  te.*,
   COALESCE(sp_exact.country_code, sp_fallback.country_code) AS country_code,
   COALESCE(sp_exact.supplier_id, sp_fallback.supplier_id) AS supplier_id,
   COALESCE(sp_exact.supplier_name, sp_fallback.supplier_name) AS supplier_name,
@@ -80,7 +87,7 @@ SELECT
   COALESCE(sp_exact.l1_master_category, sp_fallback.l1_master_category) AS l1_master_category,
   COALESCE(sp_exact.l2_master_category, sp_fallback.l2_master_category) AS l2_master_category,
   COALESCE(sp_exact.l3_master_category, sp_fallback.l3_master_category) AS l3_master_category,
-  COALESCE(sp_exact.principal_supplier_id, sp_fallback.principal_supplier_id) AS principal_supplier_id,
+  COALESCE(sp_exact.principal_supplier_id, sp_fallback.principal_supplier_id) AS principal_supplier_id
   -- COALESCE(sp_exact.last_updated, sp_fallback.last_updated) AS product_info_updated_at
 FROM tmp_efficiency AS te
 -- Primary Join: Exact Warehouse match
@@ -93,4 +100,5 @@ LEFT JOIN ranked_global_product AS sp_fallback
   ON te.sku_id = sp_fallback.sku_id
   AND te.global_entity_id = sp_fallback.global_entity_id
   AND sp_fallback.recency_rank = 1
+  AND sp_exact.sku_id IS NULL
 WHERE TRUE

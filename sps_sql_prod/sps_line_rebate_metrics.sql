@@ -23,16 +23,15 @@ base AS (
     month,
     quarter_year,
     global_entity_id,
-
     supplier_id,
     principal_supplier_id,
     brand_name,
     brand_owner_name,
-
     l1_master_category,
     l2_master_category,
     l3_master_category,
-
+    sku_calc_gross_delivered,
+    sku_calc_gross_return,
     sku_calc_net_delivered,
     sku_calc_net_return,
     sku_rebate,
@@ -89,7 +88,11 @@ SELECT
   CASE WHEN GROUPING(month) = 0 THEN 'Monthly' ELSE 'Quarterly' END AS time_granularity,
   ROUND(SUM(sku_calc_net_delivered - sku_calc_net_return), 2) AS net_purchase,
   ROUND(SUM(sku_rebate), 2) AS total_rebate,
-  ROUND(SUM(sku_rebate_wo_dist_allowance_lc), 4) AS total_rebate_wo_dist_allowance_lc
+  ROUND(SUM(sku_rebate_wo_dist_allowance_lc), 4) AS total_rebate_wo_dist_allowance_lc,
+  ROUND(SUM(sku_calc_gross_delivered), 2) AS calc_gross_delivered,
+  ROUND(SUM(sku_calc_gross_return), 2)    AS calc_gross_return,
+  ROUND(SUM(sku_calc_net_delivered), 2)   AS calc_net_delivered,
+  ROUND(SUM(sku_calc_net_return), 2)      AS calc_net_return,
 FROM filtered
 GROUP BY GROUPING SETS (
     -- ==========================================================
@@ -105,7 +108,7 @@ GROUP BY GROUPING SETS (
     (month, global_entity_id, principal_supplier_id, brand_name),
     (month, global_entity_id, supplier_id, brand_name),
     (month, global_entity_id, brand_owner_name, brand_name),
-    (month, global_entity_id, brand_name), -- Global Brand View
+    (month, global_entity_id, brand_name),
 
     -- 3. CATEGORY DEEP-DIVE (By Owner + Categories)
     (month, global_entity_id, principal_supplier_id, l1_master_category),
@@ -120,8 +123,7 @@ GROUP BY GROUPING SETS (
     (month, global_entity_id, brand_owner_name, l2_master_category),
     (month, global_entity_id, brand_owner_name, l3_master_category),
 
-    -- Add these to the Monthly section
-    (month, global_entity_id, brand_name, l1_master_category),
+        (month, global_entity_id, brand_name, l1_master_category),
     (month, global_entity_id, brand_name, l2_master_category),
     (month, global_entity_id, brand_name, l3_master_category),
 
@@ -153,7 +155,6 @@ GROUP BY GROUPING SETS (
     (quarter_year, global_entity_id, brand_owner_name, l2_master_category),
     (quarter_year, global_entity_id, brand_owner_name, l3_master_category), 
 
-    -- Add these to the Quarterly section
     (quarter_year, global_entity_id, brand_name, l1_master_category),
     (quarter_year, global_entity_id, brand_name, l2_master_category),
     (quarter_year, global_entity_id, brand_name, l3_master_category)

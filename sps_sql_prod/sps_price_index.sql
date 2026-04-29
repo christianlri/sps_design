@@ -45,7 +45,11 @@ WITH date_config AS (
         ELSE 'supplier' 
     END AS supplier_level,
     CASE WHEN GROUPING(price_index_month) = 0 THEN 'Monthly' ELSE 'Quarterly' END AS time_granularity,
-    ROUND(SAFE_DIVIDE(SUM(median_bp_index * sku_gpv_eur), SUM(sku_gpv_eur)), 2) AS median_price_index,
+    -- Tableau formula: median_price_index = SUM(price_index_numerator) / SUM(price_index_weight)
+    ROUND(SUM(median_bp_index * sku_gpv_eur), 4) AS price_index_numerator,
+    ROUND(SUM(sku_gpv_eur), 4) AS price_index_weight,
+    -- MAINTAINED: median_price_index for backwards compatibility (deprecated in Tableau)
+    ROUND(SAFE_DIVIDE(SUM(median_bp_index * sku_gpv_eur), SUM(sku_gpv_eur)), 2) AS median_price_index
   FROM `{{ params.project_id }}.{{ params.dataset.cl }}.sps_price_index_month`
   WHERE CAST(price_index_month AS DATE) >= (SELECT lookback_limit FROM date_config)
   GROUP BY GROUPING SETS (

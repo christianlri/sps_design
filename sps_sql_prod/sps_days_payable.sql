@@ -54,6 +54,10 @@ SELECT
     WHEN GROUPING(stock_days_month) = 0 THEN SAFE_SUBTRACT(MAX(payment_days), SAFE_DIVIDE(SUM(sku_month_end_stock_value_eur), SAFE_DIVIDE(SUM(sku_cogs_eur_monthy), MAX(days_in_month))))
     ELSE SAFE_SUBTRACT(MAX(payment_days), SAFE_DIVIDE(SUM(sku_month_end_stock_value_eur), SAFE_DIVIDE(SUM(sku_cogs_eur_monthy), MAX(days_in_quarter) / 3)))
   END AS dpo,
+  SUM(sku_month_end_stock_value_eur) AS stock_value_eur,
+  SUM(sku_cogs_eur_monthy) AS cogs_monthly_eur,
+  MAX(days_in_month) AS days_in_month,
+  MAX(days_in_quarter) AS days_in_quarter,
 FROM `{{ params.project_id }}.{{ params.dataset.cl }}.sps_days_payable_month`
 WHERE CAST(stock_days_month AS DATE) >= (SELECT lookback_limit FROM date_config)
 GROUP BY GROUPING SETS (

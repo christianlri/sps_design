@@ -37,11 +37,11 @@ sps_product AS (
 ),
 rdvr_dc_cmt AS (
   SELECT 
-    rdc.period AS month, 
+    SAFE.PARSE_DATE('%d/%m/%Y', rdc.period) AS month,
     rdc.country AS country_name, 
-    rdc.cost_local_currency AS cost_local, 
-    rdc.cost_euro
-  FROM `dh-darkstores-stg.dev_dmart.rdvr_dc_cmt` AS rdc
+    SAFE_CAST(REPLACE(rdc.cost_local_currency, ',', '') AS FLOAT64) AS cost_local,
+    SAFE_CAST(REPLACE(rdc.cost_euro, ',', '') AS FLOAT64) AS cost_euro
+  FROM `{{ params.project_id }}.{{ params.dataset.dl }}.gsheet_gsh_dc_monthly_cost_per_country` AS rdc
 ),
 scm_dc_centralization AS (
   -- Step 1: Aggregate raw data to the Month + SKU level

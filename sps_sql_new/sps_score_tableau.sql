@@ -7,7 +7,7 @@ CLUSTER BY
    global_entity_id
 AS
 -- NEW (architectural refactor): all_keys UNION pattern
--- Instead of sequential JOINs anchored to sps_purchase_order, we build the complete key space
+-- build the complete key space
 -- by collecting DISTINCT key combinations from ALL source tables. This ensures coverage of
 -- all unique (global_entity_id, time_period, brand_sup, entity_key, division_type, supplier_level, time_granularity)
 -- combinations that exist in any of the 8 source tables, even if not in sps_purchase_order.
@@ -51,7 +51,7 @@ SELECT
   -- Financial metrics (from sps_financial_metrics)
   sfm.* EXCEPT (global_entity_id, time_period, time_granularity, division_type, supplier_level, entity_key, brand_sup),
   -- Line rebate metrics (from sps_line_rebate_metrics)
-  slrm.* EXCEPT (global_entity_id, time_period, time_granularity, division_type, supplier_level, entity_key, brand_sup, net_purchase),
+  slrm.* EXCEPT (global_entity_id, time_period, time_granularity, division_type, supplier_level, entity_key, brand_sup, net_purchase, calc_net_delivered, calc_net_return),
   -- NEW: Ingredientes from sps_line_rebate_metrics
   slrm.calc_net_delivered,
   slrm.calc_net_return,

@@ -45,7 +45,6 @@ WITH date_config AS (
         ELSE 'supplier' 
     END AS supplier_level,
     CASE WHEN GROUPING(price_index_month) = 0 THEN 'Monthly' ELSE 'Quarterly' END AS time_granularity,
-    -- NEW: Ingredientes descompuestos para agregación correcta en Tableau
     -- Tableau formula: median_price_index = SUM(price_index_numerator) / SUM(price_index_weight)
     ROUND(SUM(median_bp_index * sku_gpv_eur), 4) AS price_index_numerator,
     ROUND(SUM(sku_gpv_eur), 4) AS price_index_weight,

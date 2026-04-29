@@ -89,11 +89,10 @@ SELECT
   ROUND(SUM(sku_calc_net_delivered - sku_calc_net_return), 2) AS net_purchase,
   ROUND(SUM(sku_rebate), 2) AS total_rebate,
   ROUND(SUM(sku_rebate_wo_dist_allowance_lc), 4) AS total_rebate_wo_dist_allowance_lc,
-  -- New Ingredients
   ROUND(SUM(sku_calc_gross_delivered), 2) AS calc_gross_delivered,
   ROUND(SUM(sku_calc_gross_return), 2)    AS calc_gross_return,
   ROUND(SUM(sku_calc_net_delivered), 2)   AS calc_net_delivered,
-  ROUND(SUM(sku_calc_net_return), 2)      AS calc_net_return
+  ROUND(SUM(sku_calc_net_return), 2)      AS calc_net_return,
 FROM filtered
 GROUP BY GROUPING SETS (
     -- ==========================================================
@@ -159,4 +158,4 @@ GROUP BY GROUPING SETS (
     (quarter_year, global_entity_id, brand_name, l1_master_category),
     (quarter_year, global_entity_id, brand_name, l2_master_category),
     (quarter_year, global_entity_id, brand_name, l3_master_category)
-);
+)

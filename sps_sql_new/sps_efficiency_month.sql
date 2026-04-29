@@ -19,7 +19,7 @@ date_in AS (
     CAST('{{ params.backfill_end_date }}' AS DATE) AS date_fin
     {%- endif %}
 )
-, tmp_sp_product AS (
+,tmp_sp_product AS (
  SELECT
    sp.global_entity_id,
    sp.country_code,
@@ -53,16 +53,16 @@ tmp_efficiency AS (
    e.global_entity_id,
    e.warehouse_id,
    e.sku AS sku_id,
-   -- NEW (AQS v5→v2/v7): Changed source from _aqs_v5_sku_efficiency_detail to sku_efficiency_detail_v2
-   -- Removed fields: date_diff, avg_qty_sold, new_availability (now ingredients: numerator_new_avail, denom_new_avail)
-   e.sku_efficiency,           -- NEW: ENUM categorization (zero_mover, slow_mover, efficient_mover)
-   e.updated_sku_age,          -- NEW: INT days (replaces date_diff)
-   e.available_hours,          -- NEW: availability metric
-   e.potential_hours,          -- NEW: availability metric
-   e.numerator_new_avail,      -- NEW: ingredient for weighted availability
-   e.denom_new_avail,          -- NEW: ingredient for weighted availability
-   e.sku_status,               -- NEW: SKU status field
-   e.is_listed,                -- NEW: BOOL listing indicator
+   e.updated_sku_age,
+   e.sku_efficiency,
+   e.avg_qty_sold,
+   e.new_availability,
+   e.numerator_new_avail,
+   e.denom_new_avail,
+   e.available_hours,
+   e.potential_hours,
+   e.is_listed,
+   e.sku_status,
    e.sold_items,
    e.gpv_eur,
    STRING(e.month) AS month,
@@ -89,7 +89,6 @@ SELECT
   COALESCE(sp_exact.l3_master_category, sp_fallback.l3_master_category) AS l3_master_category,
   COALESCE(sp_exact.principal_supplier_id, sp_fallback.principal_supplier_id) AS principal_supplier_id
   -- COALESCE(sp_exact.last_updated, sp_fallback.last_updated) AS product_info_updated_at
-  -- NEW (AQS v2/v7): All new AQS fields (sku_efficiency, updated_sku_age, available_hours, etc.) travel through te.* above
 FROM tmp_efficiency AS te
 -- Primary Join: Exact Warehouse match
 LEFT JOIN tmp_sp_product AS sp_exact
@@ -102,5 +101,4 @@ LEFT JOIN ranked_global_product AS sp_fallback
   AND te.global_entity_id = sp_fallback.global_entity_id
   AND sp_fallback.recency_rank = 1
   AND sp_exact.sku_id IS NULL
-WHERE TRUE;
-
+WHERE TRUE

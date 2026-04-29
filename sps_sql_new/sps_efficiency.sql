@@ -11,9 +11,6 @@ WITH date_config AS (
   SELECT
      DATE_SUB(DATE_TRUNC(CURRENT_DATE(), QUARTER), INTERVAL 4 QUARTER) AS lookback_limit
 ),
-
--- NEW (3-CTE refactor): CTE A - SKU counts (non-additive across warehouses)
--- COUNT(DISTINCT) is not additive cross-warehouse → calculated once at supplier level
 sku_counts AS (
   SELECT
     global_entity_id,
@@ -55,9 +52,6 @@ sku_counts AS (
   WHERE CAST(month AS DATE) >= (SELECT lookback_limit FROM date_config)
   GROUP BY 1,2,3,4,5,6,7,8,9,10
 ),
-
--- NEW (3-CTE refactor): CTE B - Additive metrics by warehouse
--- weight_efficiency and gpv_eur are additive across warehouses → SUM() is correct
 efficiency_by_warehouse AS (
   SELECT
     global_entity_id,
@@ -71,15 +65,10 @@ efficiency_by_warehouse AS (
     l2_master_category,
     l3_master_category,
     warehouse_id,
-
     SUM(numerator_new_avail) AS numerator_new_avail,
     SUM(denom_new_avail) AS denom_new_avail,
     ROUND(SUM(sold_items), 1) AS sold_items,
     SUM(gpv_eur) AS gpv_eur,
-
-    -- NEW: weight_efficiency metric (AQS v7 methodology)
-    -- = (qualified_efficient_skus / all_qualified_skus) * SUM(gpv_eur)
-    -- This is a numerator ingredient; Tableau will calculate: SUM(weight_efficiency) / SUM(gpv_eur)
     ROUND(
       SAFE_DIVIDE(
         SUM(COUNT(DISTINCT CASE WHEN is_listed = TRUE
@@ -101,7 +90,6 @@ efficiency_by_warehouse AS (
                 supplier_id, warehouse_id), 0)
       ) * SUM(gpv_eur)
     , 4) AS weight_efficiency
-
   FROM `{{ params.project_id }}.{{ params.dataset.cl }}.sps_efficiency_month`
   WHERE CAST(month AS DATE) >= (SELECT lookback_limit FROM date_config)
   GROUP BY
@@ -117,9 +105,6 @@ efficiency_by_warehouse AS (
     l3_master_category,
     warehouse_id
 ),
-
--- NEW (3-CTE refactor): CTE C - Combined (SKU counts + additive metrics across warehouses)
--- SKU counts remain from CTE A (fixed); gpv/efficiency aggregated across warehouses
 combined AS (
   SELECT
     a.global_entity_id,
@@ -164,7 +149,6 @@ combined AS (
     a.efficient_movers, a.new_zero_movers, a.new_slow_movers,
     a.new_efficient_movers
 )
-
  SELECT
     global_entity_id,
     CASE WHEN GROUPING(month) = 0 THEN CAST(month AS STRING) ELSE quarter_year END AS time_period,

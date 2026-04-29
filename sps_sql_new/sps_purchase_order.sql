@@ -52,7 +52,6 @@ WITH date_config AS (
      ROUND(SAFE_DIVIDE(COALESCE(SUM((CASE WHEN order_status = 'done' AND is_compliant_flag THEN total_received_qty_per_order END)),0), COALESCE(SUM((CASE WHEN order_status = 'done' AND is_compliant_flag THEN total_demanded_qty_per_order END)),0)), 4) AS fill_rate,
      ROUND(SAFE_DIVIDE(COUNT(DISTINCT(CASE WHEN order_received_on_time = 1 AND is_compliant_flag THEN po_order_id END)), COUNT(DISTINCT(CASE WHEN cancel_reason IS NULL AND is_compliant_flag THEN po_order_id END))), 4 ) AS otd,
      COALESCE(SUM((CASE WHEN cancel_reason IN  ('Supplier non fulfillment', 'AUTO CANCELLED', 'PO rejected on site (Quality issue)', 'Stock not available') THEN total_demanded_qty_per_order END)),0) AS supplier_non_fulfilled_order_qty,
-     -- NEW (debug fields): Ingredient counts for order aggregations
      COUNT(DISTINCT po_order_id) AS total_po_orders,
      COUNT(DISTINCT(CASE WHEN is_compliant_flag THEN po_order_id END)) AS total_compliant_po_orders,
      COALESCE(SUM(total_received_qty_per_order), 0) AS total_received_qty_ALL,
