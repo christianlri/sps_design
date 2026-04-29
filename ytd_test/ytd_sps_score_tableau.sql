@@ -46,8 +46,22 @@ SELECT DISTINCT * FROM (
   SELECT global_entity_id, time_period, brand_sup, entity_key, division_type, supplier_level, time_granularity FROM `dh-darkstores-live.csm_automated_tables.ytd_sps_delivery_costs`
   UNION ALL
   SELECT global_entity_id, time_period, brand_sup, entity_key, division_type, supplier_level, time_granularity FROM `dh-darkstores-live.csm_automated_tables.ytd_sps_purchase_order`
-))
+)),
+-- ── Supplier names mapping: extract distinct supplier_id → supplier_name from sps_product ─
+sps_product_clean AS (
+  SELECT DISTINCT
+    CAST(supplier_id AS STRING) as supplier_id,
+    supplier_name,
+    global_entity_id
+  FROM `dh-darkstores-live.csm_automated_tables.sps_product`
+  WHERE supplier_id IS NOT NULL
+)
 SELECT o.*,
+  -- Supplier name: join brand_sup with sps_product for division/principal suppliers, else fallback to brand_sup
+  CASE
+    WHEN o.division_type IN ('division', 'principal') THEN COALESCE(prod.supplier_name, o.brand_sup)
+    ELSE o.brand_sup
+  END AS supplier_name,
  p.median_price_index,
  p.price_index_numerator,
  p.price_index_weight,
@@ -111,6 +125,12 @@ SELECT o.*,
  mc.total_market_customers,
  mc.total_market_orders
 FROM all_keys AS o
+-- Supplier names (from sps_product, filtered to division/principal only)
+LEFT JOIN sps_product_clean prod
+  ON o.global_entity_id = prod.global_entity_id
+  AND CAST(o.brand_sup AS STRING) = prod.supplier_id
+  AND o.division_type IN ('division', 'principal')
+-- Price index
 LEFT JOIN `dh-darkstores-live.csm_automated_tables.ytd_sps_price_index` AS p
   ON o.global_entity_id = p.global_entity_id AND o.time_period = p.time_period AND o.time_granularity = p.time_granularity AND o.division_type = p.division_type AND o.supplier_level = p.supplier_level AND o.entity_key = p.entity_key AND o.brand_sup = p.brand_sup
 LEFT JOIN `dh-darkstores-live.csm_automated_tables.ytd_sps_days_payable` AS dpo
